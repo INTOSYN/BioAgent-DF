@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BioAgent-DF · From Tool State to Scientific Action</title>
+  <meta name="description" content="BioAgent-DF audits whether silent numerical faults in scientific tools change what biomedical research agents read, cite and decide, and what has to be restored to recover the reference decision.">
+  <meta name="author" content="Xingyu Yi, Xinya Zhang, Yunshen Zhou, Haoyu Bao">
+  <meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1418" media="(prefers-color-scheme: dark)">
+
+  <!-- Social preview: switch the image URLs to absolute ones once the site is live -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="From Tool State to Scientific Action: Auditing Decision Provenance in Biomedical Research Agents">
+  <meta property="og:description" content="A scientific agent can give the same verdict while reading and citing different evidence. BioAgent-DF traces and restores agents' evidence paths and actions under silent numerical faults.">
+  <meta property="og:image" content="static/images/og-image.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="BioAgent-DF · From Tool State to Scientific Action">
+  <meta name="twitter:image" content="static/images/og-image.jpg">
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23132330'/%3E%3Cpath d='M7 10.5c6.5 0 8.5 5.5 17.5 5.5' stroke='%232fb3a3' stroke-width='2.8' fill='none' stroke-linecap='round'/%3E%3Cpath d='M7 21.5c6.5 0 8.5-5.5 17.5-5.5' stroke='%23ef7a52' stroke-width='2.8' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='24.5' cy='16' r='2.8' fill='%23fff'/%3E%3C/svg%3E">
+
+  <script>
+    // Pick the language (?lang=, saved choice, then browser) and theme before first paint
+    (function () {
+      var root = document.documentElement, lang = null;
+      try {
+        var q = new URLSearchParams(location.search).get("lang");
+        if (q === "zh" || q === "en") lang = q;
+      } catch (e) {}
+      try {
+        if (!lang) {
+          var saved = localStorage.getItem("bioagent-df-lang");
+          if (saved === "zh" || saved === "en") lang = saved;
+        }
+      } catch (e) {}
+      if (!lang) {
+        var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+        lang = /^zh/i.test(nav) ? "zh" : "en";
+      }
+      root.setAttribute("data-lang", lang);
+      root.lang = lang === "zh" ? "zh-CN" : "en";
+      try {
+        var t = localStorage.getItem("bioagent-df-theme");
+        if (t === "light" || t === "dark") root.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..600&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <link rel="stylesheet" href="static/css/style.css">
+  <script defer src="static/js/main.js"></script>
+  <script defer id="katex-js" src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+</head>
+<body id="top">
+  <a class="skip-link" href="#overview"><span class="en" lang="en">Skip to content</span><span class="zh" lang="zh-CN">跳到正文</span></a>
+
+  <nav class="topnav" aria-label="Sections">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect class="mk-bg" width="32" height="32" rx="9"/>
+          <path class="mk-h" d="M7 10.5c6.5 0 8.5 5.5 17.5 5.5"/>
+          <path class="mk-c" d="M7 21.5c6.5 0 8.5-5.5 17.5-5.5"/>
+          <circle class="mk-dot" cx="24.5" cy="16" r="2.8"/>
+        </svg>
+        BioAgent-DF
+      </a>
+      <div class="nav-links">
+        <a href="#overview"><span class="en" lang="en">Overview</span><span class="zh" lang="zh-CN">概览</span></a>
+        <a href="#outlook"><span class="en" lang="en">Outlook</span><span class="zh" lang="zh-CN">展望</span></a>
+        <a href="#decisions"><span class="en" lang="en">Decisions</span><span class="zh" lang="zh-CN">决策</span></a>
+        <a href="#method"><span class="en" lang="en">Method</span><span class="zh" lang="zh-CN">方法</span></a>
+        <a href="#mechanism"><span class="en" lang="en">Mechanism</span><span class="zh" lang="zh-CN">机制</span></a>
+        <a href="#endpoints"><span class="en" lang="en">Endpoints</span><span class="zh" lang="zh-CN">终点</span></a>
+        <a href="#example"><span class="en" lang="en">Example</span><span class="zh" lang="zh-CN">案例</span></a>
+        <a href="#cite"><span class="en" lang="en">BibTeX</span><span class="zh" lang="zh-CN">引用</span></a>
+      </div>
+      <div class="nav-tools">
+        <button class="lang-toggle" type="button" aria-label="Switch to Chinese"><span class="en" lang="zh-CN">中文</span><span class="zh" lang="en">EN</span></button>
+        <button class="theme-toggle" type="button" aria-label="Switch theme">
+          <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.4A8.5 8.5 0 1 1 10.6 3.5a6.6 6.6 0 0 0 9.9 9.9z"/></svg>
+          <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero" lang="en">
+    <div class="wrap">
+      <p class="badge"><b>BioAgent-DF</b><span>Towards Trustworthy and Controllable Fully Automated Wet Labs</span></p>
+      <h1>From Tool State to Scientific Action<span class="sub">Auditing Decision Provenance in Biomedical Research Agents</span></h1>
+
+      <!-- Each name shows its card on hover, keyboard focus or tap -->
+      <ul class="authors">
+        <li class="author">
+          <button class="author-name" type="button" aria-describedby="author-yi" aria-expanded="false">Xingyu Yi</button><sup>1,*</sup>
+          <span class="author-card" role="tooltip" id="author-yi">
+            <b class="ac-name">Xingyu Yi</b>
+            <span class="ac-role"><b>Chief Scientist</b><span>INTOSYN AI Labs</span></span>
+          </span>
+        </li>
+        <li class="author">
+          <button class="author-name" type="button" aria-describedby="author-zhang" aria-expanded="false">Xinya Zhang</button><sup>1,2</sup>
+          <span class="author-card" role="tooltip" id="author-zhang">
+            <b class="ac-name">Xinya Zhang</b>
+            <span class="ac-role"><b>Researcher</b><span>INTOSYN AI Labs</span></span>
+            <span class="ac-role"><b>Instructor</b><span>Columbia University</span></span>
+          </span>
+        </li>
+        <li class="author">
+          <button class="author-name" type="button" aria-describedby="author-zhou" aria-expanded="false">Yunshen Zhou</button><sup>3</sup>
+          <span class="author-card" role="tooltip" id="author-zhou">
+            <b class="ac-name">Yunshen Zhou</b>
+            <span class="ac-role"><b>Senior Applied Scientist</b><span>Microsoft</span></span>
+            <span class="ac-role"><b>Ph.D., Applied Mathematics</b><span>University of California, Davis</span></span>
+          </span>
+        </li>
+        <li class="author">
+          <button class="author-name" type="button" aria-describedby="author-bao" aria-expanded="false">Haoyu Bao</button><sup>1</sup>
+          <span class="author-card" role="tooltip" id="author-bao">
+            <b class="ac-name">Haoyu Bao</b>
+            <span class="ac-role"><b>Research Student</b><span>INTOSYN AI Labs</span></span>
+          </span>
+        </li>
+      </ul>
+      <ul class="affils">
+        <li><sup>1</sup><a href="https://intosyn.com">INTOSYN AI Labs</a></li>
+        <li><sup>2</sup><a href="https://columbia.edu">Columbia University</a></li>
+        <li><sup>3</sup><a href="https://microsoft.com">Microsoft</a></li>
+      </ul>
+      <p class="note"><sup>*</sup>Corresponding author</p>
+
+      <div class="actions">
+        <a class="btn btn-primary" href="https://arxiv.org/pdf/2611.01527">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
+          Paper
+        </a>
+        <a class="btn" href="https://arxiv.org/abs/2611.01527">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20"/></svg>
+          arXiv
+        </a>
+        <a class="btn" href="https://github.com/INTOSYN/Aritheia_GPU_Test" title="Aritheia: detects numerical anomalies on NVIDIA GPUs">
+          <svg class="fill" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+          Code · Aritheia
+        </a>
+        <a class="btn" href="#cite">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11H6.5A1.5 1.5 0 0 1 5 9.5v-3A1.5 1.5 0 0 1 6.5 5h2A1.5 1.5 0 0 1 10 6.5V11c0 3.5-1.6 6-4.5 7"/><path d="M19 11h-3.5A1.5 1.5 0 0 1 14 9.5v-3A1.5 1.5 0 0 1 15.5 5h2A1.5 1.5 0 0 1 19 6.5V11c0 3.5-1.6 6-4.5 7"/></svg>
+          BibTeX
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Overview -->
+    <section id="overview" class="overview" lang="en">
+      <div class="wrap">
+        <div class="tldr">
+          <div class="tldr-text">
+            <p class="eyebrow">TL;DR</p>
+            <h2>Same verdict.<br><em>Different evidence.</em></h2>
+            <p class="lead">A scientific agent can give the same verdict while reading and citing different evidence. BioAgent-DF tests this separation with paired reference and candidate values saved at the same scientific computation site. It restores or transplants those values at their original coordinates, runs the agent on healthy hardware, and compares what the agent retrieves, reads, cites, decides and concludes.</p>
+            <ul class="legend">
+              <li><span class="key h" aria-hidden="true">H</span><span><b>Reference state.</b> Values from a matched healthy execution.</span></li>
+              <li><span class="key c" aria-hidden="true">C</span><span><b>Candidate state.</b> Values saved at the same site, for example on a GPU with silent arithmetic faults.</span></li>
+            </ul>
+          </div>
+
+          <figure class="motif">
+            <figcaption>Paired replay on healthy hardware</figcaption>
+            <svg viewBox="0 0 380 426" role="img" aria-label="Diagram: a reference tool state H and a candidate tool state C are replayed to the same agent model on healthy hardware. The two branches select different evidence, A and B, yet reach the same verdict.">
+              <path class="m-edge h" d="M95 82C95 112 184 104 184 134"/>
+              <path class="m-edge c" d="M285 82C285 112 196 104 196 134"/>
+              <path class="m-edge h" d="M184 196C184 226 95 218 95 248"/>
+              <path class="m-edge c" d="M196 196C196 226 285 218 285 248"/>
+              <path class="m-edge h" d="M95 306C95 336 184 328 184 358"/>
+              <path class="m-edge c" d="M285 306C285 336 196 328 196 358"/>
+
+              <path id="route-h" class="m-route" d="M95 82C95 112 184 104 184 134L184 196C184 226 95 218 95 248L95 306C95 336 184 328 184 358L184 386"/>
+              <path id="route-c" class="m-route" d="M285 82C285 112 196 104 196 134L196 196C196 226 285 218 285 248L285 306C285 336 196 328 196 358L196 386"/>
+              <circle class="m-dot h" r="4.5" opacity="0">
+                <animateMotion dur="5s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1;1" keyTimes="0;0.8;1"><mpath href="#route-h"/></animateMotion>
+                <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.05;0.74;0.8;1" dur="5s" repeatCount="indefinite"/>
+              </circle>
+              <circle class="m-dot c" r="4.5" opacity="0">
+                <animateMotion dur="5s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1;1" keyTimes="0;0.8;1"><mpath href="#route-c"/></animateMotion>
+                <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.05;0.74;0.8;1" dur="5s" repeatCount="indefinite"/>
+              </circle>
+
+              <rect class="m-box h" x="14" y="28" width="162" height="54" rx="12"/>
+              <circle class="m-badge h" cx="38" cy="55" r="12"/>
+              <text class="m-badge-t" x="38" y="59.5" text-anchor="middle">H</text>
+              <text class="m-t" x="60" y="51">Reference</text>
+              <text class="m-s" x="60" y="68">healthy run</text>
+
+              <rect class="m-box c" x="204" y="28" width="162" height="54" rx="12"/>
+              <circle class="m-badge c" cx="228" cy="55" r="12"/>
+              <text class="m-badge-t" x="228" y="59.5" text-anchor="middle">C</text>
+              <text class="m-t" x="250" y="51">Candidate</text>
+              <text class="m-s" x="250" y="68">faulty capture</text>
+
+              <rect class="m-box" x="115" y="134" width="150" height="62" rx="14"/>
+              <text class="m-t" x="190" y="161" text-anchor="middle">Same agent model</text>
+              <text class="m-s" x="190" y="179" text-anchor="middle">healthy hardware</text>
+
+              <rect class="m-box h" x="14" y="248" width="162" height="58" rx="12"/>
+              <text class="m-t h" x="95" y="272" text-anchor="middle">Evidence path A</text>
+              <text class="m-s" x="95" y="290" text-anchor="middle">reads · citations</text>
+
+              <rect class="m-box c" x="204" y="248" width="162" height="58" rx="12"/>
+              <text class="m-t c" x="285" y="272" text-anchor="middle">Evidence path B</text>
+              <text class="m-s" x="285" y="290" text-anchor="middle">reads · citations</text>
+
+              <circle class="m-ne" cx="190" cy="277" r="12"/>
+              <text class="m-ne-t" x="190" y="282" text-anchor="middle">≠</text>
+
+              <rect class="m-verdict" x="122" y="358" width="136" height="52" rx="26"/>
+              <path class="m-check" d="M135 384l4.5 4.5 8.5-9"/>
+              <text class="m-v" x="155" y="389">Same verdict</text>
+            </svg>
+          </figure>
+        </div>
+
+        <div class="stats">
+          <div class="stat c">
+            <p class="stat-value">7</p>
+            <p class="stat-label">capture–claim combinations with repeatable read or citation changes across eight SciFact batches, with verdicts unchanged</p>
+          </div>
+          <div class="stat c">
+            <p class="stat-value">351<small>/402</small></p>
+            <p class="stat-label">compounds on the hERG Top-402 shortlist labeled as blockers, unchanged even as the compounds assigned to testing changed</p>
+          </div>
+          <div class="stat">
+            <p class="stat-value">39<small>/39</small></p>
+            <p class="stat-label">changed decisions recovered by restoring the agent’s earlier execution state; replacing the prediction file recovered none</p>
+          </div>
+          <div class="stat">
+            <p class="stat-value">42.4<small>%</small></p>
+            <p class="stat-label">less time for forward execution plus verification than the original FP64 checks, with identical flags and recovery outputs</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Abstract: the project's short pitch (Chinese original, English translation) -->
+    <section id="abstract" class="section alt">
+      <div class="wrap abstract-grid">
+        <div>
+          <p class="eyebrow"><span class="en" lang="en">Abstract</span><span class="zh" lang="zh-CN">摘要</span></p>
+        </div>
+        <div class="abstract-text">
+          <div class="zh" lang="zh-CN">
+            <p class="promo-lead">我们在生产训练集群中发现了两类存在静默数值异常的 GPU：训练仍在正常运行，底层计算却已出现偏差。</p>
+            <p>在 hERG 心脏安全性筛查中，这些真实硬件故障产生的数值偏差改变了科研 Agent 的决策，甚至<mark class="hl-c">错误地将原本应送检的 hERG 阻断剂划为免检</mark>，而整体统计指标仍可能保持不变。</p>
+            <p>为此，我们提出 BioAgent-DF，构建了一套贯穿 GPU 数值校验、可信重算、Agent 状态恢复与决策认证的科学决策保真框架。在论文实验中，<mark class="hl">39</mark> 个受故障影响而改变的 Agent 决策经状态恢复后，全部与健康 GPU 下的参考决策一致。同时，相较于原始 FP64 校验方案，Streaming 流式校验将额外验证耗时降低 <mark class="hl">78.2%</mark>，计算与验证总耗时降低 <mark class="hl">42.4%</mark>。</p>
+            <p>从真实生产环境中的 GPU 数值故障，到科研 Agent 的决策保真，再到未来的 Autonomous Wet Lab，我们希望以 BioAgent-DF 为可信决策核心，将计算验证、Agent 状态恢复、实验执行授权、机器人操作与真实测量连接成完整的科学可信链路，构建面向下一代全自动化实验室的可信基础设施。</p>
+            <p class="motto"><span>让每一次科学决策有据可验，</span><span>让每一步实验过程有迹可循，</span><span>让每一项研究结论都能基于原始证据被重新审查与纠正。</span></p>
+          </div>
+          <div class="en" lang="en">
+            <p class="promo-lead">In production training clusters, we found two classes of GPUs with silent numerical anomalies: training kept running normally while the underlying computation had already gone wrong.</p>
+            <p>In hERG cardiac-safety screening, numerical errors from these real hardware faults changed a research agent’s decisions, even <mark class="hl-c">marking hERG blockers that should have been sent for testing as exempt</mark>, while aggregate statistics could stay unchanged.</p>
+            <p>To address this, we propose BioAgent-DF, a scientific decision-fidelity framework that spans GPU numerical verification, trusted recomputation, agent state restoration and decision certification. In the paper’s experiments, all <mark class="hl">39</mark> agent decisions changed by the faults matched the reference decisions on a healthy GPU after state restoration. Compared with the original FP64 checks, streaming verification cuts the added verification time by <mark class="hl">78.2%</mark> and the total compute-and-verification time by <mark class="hl">42.4%</mark>.</p>
+            <p>From GPU numerical faults in real production environments, to decision fidelity in research agents, to the autonomous wet lab of the future: we aim to make BioAgent-DF the trusted decision core that links computational verification, agent state restoration, authorization of experiment execution, robotic operation and real measurements into one complete chain of scientific trust, as trustworthy infrastructure for the next generation of fully automated laboratories.</p>
+            <p class="motto"><span>Every scientific decision, verifiable against evidence.</span><span>Every experimental step, traceable.</span><span>Every conclusion, open to re-examination and correction from the original evidence.</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Outlook · page Figure 1 (framework figure, not in the paper) -->
+    <section id="outlook" class="section outlook">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow"><span class="en" lang="en">Outlook</span><span class="zh" lang="zh-CN">展望</span></p>
+          <h2 class="sec-title"><span class="en" lang="en">BioAgent-DF <span class="nowrap">for Next-Generation Labs</span></span><span class="zh" lang="zh-CN">BioAgent-DF：<span class="nowrap">面向下一代实验室</span></span></h2>
+          <p class="sec-sub" lang="en">Towards Trustworthy and Controllable Fully Automated Wet Labs</p>
+        </header>
+
+        <div class="outlook-intro zh" lang="zh-CN">
+          <p>下一代自主实验室不仅要能独立提出和执行实验，还要知道哪些计算结果可以作为依据、哪些行动可以提交、错误发生后哪些状态可以恢复。本文在 hERG 评估分配任务上验证了这条链路的计算与决策两段：线性层校验和在真实故障 GPU 上全部报警而常规检查全部沉默；文件替换救不回已被 Agent 使用的错误值，恢复执行态可以；只有与证书一致的行动才被提交，没有一个错误行动通过。</p>
+          <p>BioAgent-DF 的目标是把这条链路延伸到机器人与仪器，让推理可以先行但不能提前改变实验，让数字状态可以重建但已发生的物理事实不被抹去。</p>
+        </div>
+        <div class="outlook-intro en" lang="en">
+          <p>Next-generation autonomous labs must do more than propose and run experiments on their own. They also need to know which computational results can serve as evidence, which actions may be committed, and which states can be restored after an error. On the hERG assay-allocation task, this work validates the computational and decision stages of that chain: on real faulty GPUs, linear-layer checksums flagged every faulty source while routine checks stayed silent; replacing the file could not recover faulty values the agent had already used, whereas restoring its execution state could; and only actions consistent with the certificate were committed, so no wrong action got through.</p>
+          <p>BioAgent-DF aims to extend this chain to robots and instruments, so that reasoning can run ahead without changing the experiment early, and digital state can be rebuilt without erasing physical facts that have already occurred.</p>
+        </div>
+
+        <div class="tour" data-view="all">
+          <div class="tour-bar">
+            <div class="tour-tabs" role="tablist" aria-label="Figure 1 panels">
+              <button type="button" role="tab" id="tt-all" aria-controls="tp-all" aria-selected="true" data-panel="all"><span class="en" lang="en">Full figure</span><span class="zh" lang="zh-CN">全图</span></button>
+              <button type="button" role="tab" id="tt-a" aria-controls="tp-a" aria-selected="false" tabindex="-1" data-panel="a"><b>a</b><span class="en" lang="en">Framework</span><span class="zh" lang="zh-CN">总体架构</span></button>
+              <button type="button" role="tab" id="tt-b" aria-controls="tp-b" aria-selected="false" tabindex="-1" data-panel="b"><b>b</b><span class="en" lang="en">Verified computation</span><span class="zh" lang="zh-CN">可信计算</span></button>
+              <button type="button" role="tab" id="tt-c" aria-controls="tp-c" aria-selected="false" tabindex="-1" data-panel="c"><b>c</b><span class="en" lang="en">Hold, verify, commit</span><span class="zh" lang="zh-CN">保持·验证·恢复·提交</span></button>
+              <button type="button" role="tab" id="tt-d" aria-controls="tp-d" aria-selected="false" tabindex="-1" data-panel="d"><b>d</b><span class="en" lang="en">Recovery</span><span class="zh" lang="zh-CN">读取后的恢复</span></button>
+              <button type="button" role="tab" id="tt-e" aria-controls="tp-e" aria-selected="false" tabindex="-1" data-panel="e"><b>e</b><span class="en" lang="en">Long-term reliability</span><span class="zh" lang="zh-CN">长期可靠性</span></button>
+            </div>
+            <ul class="tour-legend">
+              <li><span class="sw sw-solid" aria-hidden="true"></span><span class="en" lang="en">Solid: demonstrated in this work (appendix cited)</span><span class="zh" lang="zh-CN">实线框：本文已验证（附录可查）</span></li>
+              <li><span class="sw sw-dashed" aria-hidden="true"></span><span class="en" lang="en">Dashed: proposed extensions</span><span class="zh" lang="zh-CN">虚线框：拟议扩展</span></li>
+            </ul>
+          </div>
+
+          <a class="fig-frame tour-view" href="static/images/framework.svg" data-zoom="2.4" data-title="Figure 1 · BioAgent-DF for next-generation labs" data-title-zh="图 1 · BioAgent-DF：面向下一代实验室">
+            <span class="tour-canvas">
+              <span class="tour-layer">
+                <img src="static/images/framework.svg" width="1536" height="1024" decoding="async" lang="en" alt="BioAgent-DF framework figure in five panels. (a) Overall framework: research goals and constraints feed the BioAgent-DF runtime, where the native agent A1, verified tool computation for linear layers, an execution-state checkpoint and a commit gateway form the demonstrated core; experimental execution, verified results and the closed loop are proposed. (b) Verified computation and certified decisions for the D-MPNN predictor. (c) Hold, verify, restore and commit across three recovery conditions. (d) Recovery after the agent has used faulty values, for compounds K12252 and K1461. (e) Long-running operation and guarantees. Solid boxes are demonstrated in this work; dashed boxes are proposed.">
+                <span class="tour-spot"></span>
+              </span>
+            </span>
+            <span class="zoom-hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><span class="tour-hint">Click a panel to zoom in</span></span>
+          </a>
+
+          <div class="tour-text" role="tabpanel" id="tp-all" aria-labelledby="tt-all" data-panel="all">
+            <p class="tour-caption en" lang="en"><b>Figure 1. BioAgent-DF for next-generation autonomous labs: a demonstrated decision-fidelity core and proposed extensions.</b> Solid boxes mark parts implemented and validated by this work’s experiments; dashed boxes mark proposed designs. <b>(a) Overall framework.</b> Under a fixed scientific objective and fixed decision rules, the research agent proposes hERG assay allocations. The prediction tool’s linear layers are checked with streaming checksums, flagged predictions are recomputed on trusted hardware, and certificates are issued by full trusted recomputation. The agent’s execution state is saved before it reads tool output. The commit service records a commit after checking the request, certificate, computation contract, input view and consistency of the action, at most once per request. <b>(b) Trusted computation.</b> Row and column checksums flagged all 16 faulty sources with no false alarm in eight healthy runs, while integrity and finite-range checks flagged none. The streaming implementation reduces the added verification time by 78.2% and the total time by 42.4%. After R1 recomputes flagged predictions and M recomputes 68 near-boundary compounds, decisions in all 16 sources match the healthy reference. <b>(c) Hold, verify, restore, commit.</b> 102 requests were evaluated under three recovery conditions. With verification before the read, all 102 requests committed the healthy decision. With only the file replaced after the read, none of the 39 changed decisions was recovered and 96 actions were rejected because their input view had been superseded. With the pre-read execution state restored and the certified table used to continue, all 39 decisions were recovered and no wrong action was committed. <b>(d) Recovery after the read.</b> Under the fault, hERG blockers K12252 and K1461 were routed to advancement without testing while the number of blockers on the shortlist stayed the same; after joint digital recovery, decisions match the healthy reference. <b>(e) Long-running operation.</b> Arithmetic probes, reference measurements before and after captures, and 16,437 residual replay records are in place; long-term goals include hardware drift monitoring, contract regression tests, memory governance, a digital twin and 30 to 90 days of continuous operation. In the figure, class-1 objects are hERG blockers.</p>
+            <p class="tour-caption zh" lang="zh-CN"><b>图 1｜面向下一代自主实验室的 BioAgent-DF：已验证的决策保真核心与拟议扩展。</b>实线框为本文实验已实现并验证的部分，虚线框为拟议设计。<b>（a）总体架构。</b>科研 Agent 在固定的科学目标与决策规则下提出 hERG 评估分配；预测工具的线性层经流式校验和检查，被标记的预测在可信硬件上重算，证书由全量可信重算签发；Agent 读取工具输出前保存执行态；提交服务核对请求、证书、计算契约、输入视图和行动一致性后记录提交，每请求至多一次。<b>（b）可信计算。</b>行列校验和在 16 个故障源上全部报警、8 次健康运行无误报，而完整性与有限范围检查一个都未报警；流式实现使额外验证耗时降低 78.2%、总耗时降低 42.4%；R1 重算被标记预测、M 重算 68 个近边界化合物后，16 个源的决策全部与健康参考一致。<b>（c）保持、验证、恢复、提交。</b>102 个请求在三种恢复条件下评估：验证先于读取时 102 个请求全部提交健康决策；读取后仅替换文件时 39 个改变的决策无一恢复、96 次行动因输入视图被取代而拒绝；恢复读取前执行态并以认证表继续时 39 个决策全部恢复、无错误行动提交。<b>（d）读取后的恢复。</b>hERG 阻断剂 K12252 与 K1461 在故障下被分派为免检推进，候选列表中阻断剂数量不变；数字侧联合恢复后决策与健康参考一致。<b>（e）长期运行。</b>已有算术探针、采集前后参考测量和 16,437 条残差回放记录；长期目标包括硬件漂移监测、契约回归测试、记忆治理、数字孪生和 30 到 90 天连续运行。图中 class-1 objects 即 hERG 阻断剂。</p>
+          </div>
+
+          <div class="tour-text" role="tabpanel" id="tp-a" aria-labelledby="tt-a" data-panel="a" hidden>
+            <h3 class="tp-title"><span class="tp-letter">a</span><span class="en" lang="en">Overall framework: a demonstrated decision-fidelity core and a proposed closed loop</span><span class="zh" lang="zh-CN">总体架构：已验证的决策保真核心与拟议的闭环</span></h3>
+            <p class="tp-intro en" lang="en">Panel a traces the closed loop from research goals to experimental feedback, with the decision-fidelity core in the middle validated in this work.</p>
+            <p class="tp-intro zh" lang="zh-CN">图 a 展示从研究目标到实验反馈的闭环，中间的决策保真核心已在本文验证。</p>
+            <div class="tp-grid">
+              <div class="tp-card shown">
+                <p class="tp-label"><span class="sw sw-solid" aria-hidden="true"></span><span class="en" lang="en">Demonstrated in this work</span><span class="zh" lang="zh-CN">本文已验证</span></p>
+                <div class="en" lang="en"><p>The research agent is the native agent A1 running GPT-6.1 Sol, with 224 standard tools and one hERG prediction tool. The decision rules are fixed before capture: select a shortlist of 402 compounds and route hERG testing by a threshold. The prediction tool’s linear layers are checked with streaming checksums during the forward pass; flagged predictions are recomputed on trusted hardware, and certificates are issued by full trusted recomputation. Before the agent reads tool output, its execution state is saved: visible history, tool variables, derived files and pending actions. The commit service checks the request, the certificate, the computation contract, the input view, whether the action agrees with the certified decision, and whether the request was already committed. Each request is committed at most once, and a commit is a local record.</p></div>
+                <div class="zh" lang="zh-CN"><p>科研 Agent 是原生 agent A1，模型为 GPT-6.1 Sol，带 224 个标准工具和一个 hERG 预测工具。决策规则在采集前固定，即选出 402 个化合物的候选列表，并按阈值分派 hERG 检测。预测工具的线性层在前向过程中接受流式校验和检查，被标记的预测在可信硬件上重算，证书由全量可信重算签发。Agent 读取工具输出前保存执行态，包括可见历史、工具变量、派生文件和待执行动作。提交服务检查请求、证书、计算契约、输入视图、行动与认证决策的一致性以及是否已提交，每个请求至多提交一次，提交是一条本地记录。</p></div>
+              </div>
+              <div class="tp-card proposed">
+                <p class="tp-label"><span class="sw sw-dashed" aria-hidden="true"></span><span class="en" lang="en">Proposed</span><span class="zh" lang="zh-CN">拟议</span></p>
+                <div class="en" lang="en"><p>Checks for nonlinear operators, attention and softmax; buffered I/O and messages, private memory and KV-cache invalidation; checks for dependency closure, sample and protocol binding, device state and safety policy; robot and instrument execution, QC and execution receipts; and experimental results feeding back to update the model.</p></div>
+                <div class="zh" lang="zh-CN"><p>非线性算子、注意力和 softmax 的校验；I/O 与消息缓冲、私有记忆和 KV cache 失效；依赖闭包、样本与协议绑定、设备状态和安全策略检查；机器人与仪器执行、质控和执行回执；实验结果回流更新模型。</p></div>
+              </div>
+              <div class="tp-card why">
+                <p class="tp-label"><span class="en" lang="en">Why it matters</span><span class="zh" lang="zh-CN">意义</span></p>
+                <div class="en" lang="en"><p>The demonstrated part answers what a decision was based on and whether it matches the decision under healthy hardware. The proposed part answers what actually happened at the bench.</p></div>
+                <div class="zh" lang="zh-CN"><p>已验证的部分回答“这个决定依据什么形成、是否与健康硬件下的决定一致”。拟议的部分回答“现场实际发生了什么”。</p></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tour-text" role="tabpanel" id="tp-b" aria-labelledby="tt-b" data-panel="b" hidden>
+            <h3 class="tp-title"><span class="tp-letter">b</span><span class="en" lang="en">Trusted computation: linear layers demonstrated, other operators proposed</span><span class="zh" lang="zh-CN">可信计算：线性层已验证，其余算子为拟议</span></h3>
+            <div class="tp-grid">
+              <div class="tp-card shown">
+                <p class="tp-label"><span class="sw sw-solid" aria-hidden="true"></span><span class="en" lang="en">Demonstrated in this work</span><span class="zh" lang="zh-CN">本文已验证</span></p>
+                <div class="en" lang="en"><p>Row and column checksums with a rounding-error bound check linear computations of the form <span data-tex="Y = XW^{\top} + b">Y = XWᵀ + b</span>. After deduplication there are 5,232 linear calculations: all 16 faulty sources were flagged, eight healthy verifier runs raised no false alarm, and none of the 16 reference and restoration passes was flagged. By contrast, integrity checks on stored data and checks that probabilities are finite and between 0 and 1 flagged none of the 16 faulty sources. An independent CPU implementation agreed on all calculations, and trusted recomputation on a healthy data-center GPU reproduced the reference bit for bit.</p><p>The streaming implementation cut the verified forward pass from 1.02 s to 0.59 s, reducing the added verification time by 78.2% and the total time by 42.4%, with 25.8% overhead over the native forward pass and flags and recovery outputs identical to the original implementation.</p><p>R1+M recovers decisions: R1 recomputes flagged predictions and M also recomputes the 68 compounds within ε of a decision boundary, after which the shortlist and routing match the healthy reference in all 16 sources; the same number of compounds chosen at random or by ensemble disagreement left discrepancies. Full trusted recomputation provides certification: it issued every certificate in the per-request experiments.</p></div>
+                <div class="zh" lang="zh-CN"><p>对 <span data-tex="Y = XW^{\top} + b">Y = XWᵀ + b</span> 形式的线性计算做行列校验和并附带舍入误差界。去重后共 5,232 次线性计算，16 个故障源全部被标记，8 次健康验证运行无误报，16 次参考与恢复通过均未被标记。作为对照，存储完整性检查和“概率有限且在 0 到 1 之间”的检查对 16 个故障源一个都没标出。独立的 CPU 实现与全部计算一致，健康数据中心 GPU 上的可信重算逐位复现参考。</p><p>流式实现把验证后的前向从 1.02 秒降到 0.59 秒，额外验证耗时降低 78.2%，总耗时降低 42.4%，相对原生前向的开销为 25.8%，标记与恢复输出与原实现完全一致。</p><p>R1+M 恢复决策：R1 重算被标记的预测，M 再重算距决策边界不到 ε 的 68 个化合物，16 个源的候选列表和分派全部与健康参考一致，而随机或按集成分歧选同样数量的化合物都留下了差异。全量可信重算提供认证：单请求实验中的证书均由它签发。</p></div>
+              </div>
+              <div class="tp-card proposed">
+                <p class="tp-label"><span class="sw sw-dashed" aria-hidden="true"></span><span class="en" lang="en">Proposed</span><span class="zh" lang="zh-CN">拟议</span></p>
+                <div class="en" lang="en"><p>Extend verification to activations, attention, softmax and indexing, and aggregation. The paper already shows that these operators can go wrong: all 2,048 rows of attention probabilities are finite and normalized, yet 58 change their maximum-attention position; on Case 1 GPUs, finite LLM option scores still change the selected option. Certify decisions with the valid per-score error bounds of Corollary 1.</p></div>
+                <div class="zh" lang="zh-CN"><p>将校验扩展到激活、注意力、softmax 与索引、聚合等算子。论文已给出这些算子会出问题的证据：2,048 行注意力概率全部有限且归一化，仍有 58 行的最大注意力位置改变；Case 1 GPU 上 LLM 的选项分数有限却改变了所选选项。以 Corollary 1 的有效逐分数误差界认证决策。</p></div>
+              </div>
+              <div class="tp-card why">
+                <p class="tp-label"><span class="en" lang="en">Why it matters</span><span class="zh" lang="zh-CN">意义</span></p>
+                <div class="en" lang="en"><p>This work shows that finite values, error-free execution and unchanged metrics are not grounds for trust, and it gives a verification path that holds for linear layers. Extending coverage to other operators is the next step.</p></div>
+                <div class="zh" lang="zh-CN"><p>本文证明“数值有限、程序不报错、指标不变”都不构成可信依据，并给出一条对线性层成立的校验路径。覆盖面扩展到其他算子是下一步工作。</p></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tour-text" role="tabpanel" id="tp-c" aria-labelledby="tt-c" data-panel="c" hidden>
+            <h3 class="tp-title"><span class="tp-letter">c</span><span class="en" lang="en">Hold, verify, restore, commit</span><span class="zh" lang="zh-CN">保持、验证、恢复、提交</span></h3>
+            <div class="tp-grid">
+              <div class="tp-card shown">
+                <p class="tp-label"><span class="sw sw-solid" aria-hidden="true"></span><span class="en" lang="en">Demonstrated in this work</span><span class="zh" lang="zh-CN">本文已验证</span></p>
+                <div class="en" lang="en"><p>102 requests (16 fault sources plus one healthy reference, each with two tasks and three repeats) were each evaluated under three recovery conditions. With verification before the agent read the predictions, all 102 requests committed the healthy decision, using about 44,000 tokens per request.</p><p>When the agent had already read the faulty table and only the prediction file was replaced, none of the 39 changed decisions was recovered. The commit service rejected all 96 actions on faulty inputs because the input view used to prepare them had been superseded, including 57 actions that themselves agreed with the healthy decision.</p><p>When the execution state saved before the read was restored and the agent continued with the certified table, all 39 changed decisions were recovered, the other 63 stayed unchanged and all 102 requests were committed, at about 29,000 extra tokens and 5.66 ms of state operations per request. Across the three conditions, the 306 outcomes include 210 commits, none deviating from the certified decision and none duplicated.</p></div>
+                <div class="zh" lang="zh-CN"><p>102 个请求，即 16 个故障源加 1 个健康参考，各两项任务、三次重复，每个请求在三种恢复条件下分别评估。验证先于 Agent 读取时，全部 102 个请求提交了健康决策，每个请求约 44,000 token。</p><p>Agent 已读取故障表后只替换预测文件时，39 个改变的决策一个都没恢复，96 次故障输入上的行动全部被提交服务拒绝，原因是准备行动时的输入视图已被取代，其中 57 次行动本身与健康决策一致。</p><p>恢复到读取前保存的执行态并以认证表继续时，39 个改变的决策全部恢复，其余 63 个保持不变，102 个请求全部提交，每个请求额外约 29,000 token，状态操作每请求 5.66 毫秒。三种条件共 306 个结果，210 次提交无一偏离认证决策、无一重复。</p></div>
+              </div>
+              <div class="tp-card proposed">
+                <p class="tp-label"><span class="sw sw-dashed" aria-hidden="true"></span><span class="en" lang="en">Proposed</span><span class="zh" lang="zh-CN">拟议</span></p>
+                <div class="en" lang="en"><p>Speculative execution overlaps the agent’s reasoning with verification in time to cut waiting latency. Isolation rules keep uncertified information out of the official database, shared memory and device interfaces, and away from other agents.</p></div>
+                <div class="zh" lang="zh-CN"><p>投机执行让 Agent 的推理与验证在时间上重叠，以减少等待延迟。隔离规则保证未认证信息不写入正式数据库、公共记忆和设备接口，也不传播给其他 Agent。</p></div>
+              </div>
+              <div class="tp-card why">
+                <p class="tp-label"><span class="en" lang="en">Why it matters</span><span class="zh" lang="zh-CN">意义</span></p>
+                <div class="en" lang="en"><p>The demonstrated conclusion: replacing the file cannot recover the decision; the execution state must be rolled back, and every commit must check the input view. Speculation and isolation are designs built on top of this, and whether they pay off depends on the fault rate and the length of the experimental cycle.</p></div>
+                <div class="zh" lang="zh-CN"><p>已验证的结论是“换文件救不回，必须回滚执行态，且提交必须核对输入视图”。投机与隔离是在此之上的设计，是否值得取决于故障率和实验周期。</p></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tour-text" role="tabpanel" id="tp-d" aria-labelledby="tt-d" data-panel="d" hidden>
+            <h3 class="tp-title"><span class="tp-letter">d</span><span class="en" lang="en">Recovery after the read: digital side demonstrated, physical side proposed</span><span class="zh" lang="zh-CN">读取后的恢复：数字侧已验证，物理侧为拟议</span></h3>
+            <div class="tp-grid">
+              <div class="tp-card shown">
+                <p class="tp-label"><span class="sw sw-solid" aria-hidden="true"></span><span class="en" lang="en">Demonstrated in this work</span><span class="zh" lang="zh-CN">本文已验证</span></p>
+                <div class="en" lang="en">
+                  <p>In Case 2 fault sources, K12252 and K1461, both labeled hERG blockers, were routed to advancement without hERG testing in block 3 and block 6 respectively; the healthy decision is to test them. The shortlist still held 351 blockers among its 402 compounds.</p>
+                  <p class="flow-label">Decision recovery with R1+M</p>
+                  <ol class="flow">
+                    <li><span>checksum flag</span></li>
+                    <li><span>R1 recomputes flagged predictions</span></li>
+                    <li><span>M recomputes 68 near-boundary compounds</span></li>
+                  </ol>
+                  <p>All 96 fresh trajectories on R1+M inputs reproduced the healthy decisions.</p>
+                  <p class="flow-label">Certification and state restoration</p>
+                  <ol class="flow">
+                    <li><span>full trusted recomputation issues the certificate</span></li>
+                    <li><span>restore the execution state from before the read</span></li>
+                    <li><span>discard dependent state and pending actions</span></li>
+                    <li><span>continue with the certified table</span></li>
+                  </ol>
+                  <p>All 39 changed decisions were recovered, and no wrong action was committed.</p>
+                </div>
+                <div class="zh" lang="zh-CN">
+                  <p>Case 2 故障源中，标注为 hERG 阻断剂的 K12252 和 K1461 分别在 block 3 和 block 6 被分派为不经 hERG 检测直接推进，健康决策是送检。候选列表中阻断剂数量仍是 402 个里的 351 个。</p>
+                  <p class="flow-label">R1+M 恢复决策</p>
+                  <ol class="flow">
+                    <li><span>校验和标记</span></li>
+                    <li><span>R1 重算被标记预测</span></li>
+                    <li><span>M 重算 68 个近边界化合物</span></li>
+                  </ol>
+                  <p>96 条在 R1+M 输入上的新轨迹全部复现健康决策。</p>
+                  <p class="flow-label">认证与执行态恢复</p>
+                  <ol class="flow">
+                    <li><span>全量可信重算签发证书</span></li>
+                    <li><span>恢复读取前的执行态</span></li>
+                    <li><span>作废依赖状态与待执行动作</span></li>
+                    <li><span>以认证表继续</span></li>
+                  </ol>
+                  <p>39 个改变的决策全部恢复，没有错误行动被提交。</p>
+                </div>
+              </div>
+              <div class="tp-card proposed">
+                <p class="tp-label"><span class="sw sw-dashed" aria-hidden="true"></span><span class="en" lang="en">Proposed</span><span class="zh" lang="zh-CN">拟议</span></p>
+                <div class="en" lang="en"><p>Keep completed physical operations, reconcile sample status and mark affected results.</p></div>
+                <div class="zh" lang="zh-CN"><p>保留已完成的物理操作、核对样本状态、标记受影响结果。</p></div>
+              </div>
+              <div class="tp-card why">
+                <p class="tp-label"><span class="en" lang="en">Why it matters</span><span class="zh" lang="zh-CN">意义</span></p>
+                <div class="en" lang="en"><p>What this work demonstrates is joint recovery on the digital side: the tool state and the agent’s execution state are restored together. How to preserve irreversible physical facts is a new problem that sets autonomous labs apart from purely software systems.</p></div>
+                <div class="zh" lang="zh-CN"><p>本文证明的是数字侧的联合恢复，即工具状态和 Agent 执行态一起恢复。物理侧不可逆事实如何保留，是自主实验室区别于纯软件系统的新问题。</p></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tour-text" role="tabpanel" id="tp-e" aria-labelledby="tt-e" data-panel="e" hidden>
+            <h3 class="tp-title"><span class="tp-letter">e</span><span class="en" lang="en">Long-term reliability</span><span class="zh" lang="zh-CN">长期可靠性</span></h3>
+            <div class="tp-grid">
+              <div class="tp-card shown">
+                <p class="tp-label"><span class="sw sw-solid" aria-hidden="true"></span><span class="en" lang="en">Demonstrated in this work</span><span class="zh" lang="zh-CN">本文已验证</span></p>
+                <div class="en" lang="en"><p>The <a href="https://github.com/INTOSYN/Aritheia_GPU_Test">Aritheia</a> arithmetic-probe tool is public: on the faulty GPU, 15 of 69 checks detected an anomaly, and none did on two healthy GPUs. Healthy references were measured before, during and after every capture round. The residual bank keeps 16,437 residual records from 240 captures for replay. Ordinary precision differences serve as controls: between healthy environments, BF16 intermediate reduction changes PBMC Top-10 membership; zero-residual controls leave endpoints unchanged; and differences between healthy repeats are measured separately as the comparison baseline.</p></div>
+                <div class="zh" lang="zh-CN"><p><a href="https://github.com/INTOSYN/Aritheia_GPU_Test">Aritheia</a> 算术探针工具已公开，故障 GPU 上 69 项检查中 15 项检出异常，两块健康 GPU 为零。每轮采集前、中、后都测量健康参考。残差库保存了来自 240 次捕获的 16,437 条残差记录，可用于回放。普通精度差异已作为对照：健康环境之间的 BF16 中间约简会改变 PBMC 的 Top-10 成员，零残差对照不改变终点，健康重复之间的差异被单独测量并作为比较基线。</p></div>
+              </div>
+              <div class="tp-card proposed">
+                <p class="tp-label"><span class="sw sw-dashed" aria-hidden="true"></span><span class="en" lang="en">Proposed</span><span class="zh" lang="zh-CN">拟议</span></p>
+                <div class="en" lang="en"><p>Hardware drift monitoring and isolation; contract regression tests covering drivers, compute libraries, models and prompts; isolation, merging and revocation of memory; a digital twin; and 30 to 90 days of continuous operation.</p></div>
+                <div class="zh" lang="zh-CN"><p>硬件漂移监测与隔离；驱动、计算库、模型与提示词的契约回归测试；记忆的隔离、合并与撤销；数字孪生；30 到 90 天连续运行。</p></div>
+              </div>
+              <div class="tp-card why">
+                <p class="tp-label"><span class="en" lang="en">Why it matters</span><span class="zh" lang="zh-CN">意义</span></p>
+                <div class="en" lang="en"><p>Long-term reliability has to be maintained continuously. This work provides three starting points: probes, reference measurements and a replay corpus.</p></div>
+                <div class="zh" lang="zh-CN"><p>长期可靠性需要被持续维护。本文提供了探针、参考测量和回放语料三个起点。</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 01 · page Figure 2 (paper Figure 5) -->
+    <section id="decisions" class="section" lang="en">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow"><span class="idx">01</span>From tool state to scientific action</p>
+          <h2 class="sec-title">Silent numerical faults change which compounds get tested</h2>
+        </header>
+
+        <div class="sec-body">
+          <div class="prose">
+            <p>A three-member Chemprop D-MPNN ensemble predicts blockade of the hERG potassium channel, a cardiac-safety liability, for 2,009 held-out compounds. A native Biomni A1 agent (GPT-6.1 Sol) then selects the 402 highest-scoring compounds for measurement and assigns every compound to patch-clamp testing or advancement without testing. Sixteen saved BF16 passes, eight per GPU fault class, are compared with a healthy reference from the same GPU model and host.</p>
+            <p>Case 2 faults changed each endpoint in six of eight sources. Every list replacement exchanged labeled blockers, so the shortlist still held <strong>351 labeled blockers among its 402 compounds</strong> while the compounds assigned to testing changed. The changes reached beyond near-ties: K8429 fell from 0.880 to 0.584 and left the list, while K12096 and K2422 entered with unchanged predictions because competitors fell.</p>
+            <p><strong>R1</strong> recomputes on healthy hardware the predictions flagged by row and column checksums with a rounding bound. <strong>R1+M</strong> adds a margin rule that also recomputes the 68 compounds whose decision margin falls below <span data-tex="\varepsilon = 0.009354">ε = 0.009354</span>. Selection and triage then matched the healthy reference in all 16 sources, and all 96 fresh Biomni trajectories on R1+M inputs reproduced the healthy decisions.</p>
+          </div>
+
+          <aside class="aside">
+            <div class="meters">
+              <p class="panel-label">After the agent read faulty values</p>
+              <div class="meter">
+                <div class="meter-top"><span>Replace the prediction file</span><b>0 / 39</b></div>
+                <div class="meter-track" role="img" aria-label="0 of 39 changed decisions recovered"><div class="meter-fill" style="width:0%"></div></div>
+              </div>
+              <div class="meter">
+                <div class="meter-top"><span>Restore the saved execution state</span><b>39 / 39</b></div>
+                <div class="meter-track" role="img" aria-label="39 of 39 changed decisions recovered"><div class="meter-fill" style="width:100%"></div></div>
+              </div>
+              <p class="meter-foot">Changed decisions recovered. State restoration also preserved the decisions in the other 63 requests, and no incorrect action was committed.</p>
+            </div>
+            <ul class="facts">
+              <li><span class="fact-v">68 <span class="of">of 2,009</span></span><span class="fact-t">compounds near a decision boundary recomputed by R1+M; the same number chosen at random or by ensemble disagreement left the discrepancy</span></li>
+              <li><span class="fact-v">96 <span class="of">/ 96</span></span><span class="fact-t">native Biomni trajectories on R1+M inputs reproduce the healthy decisions</span></li>
+            </ul>
+          </aside>
+        </div>
+
+        <figure class="fig">
+          <a class="fig-frame" href="static/images/figure-5-2400.webp" data-title="Figure 2 · Changed hERG assay allocations and recovery">
+            <img src="static/images/figure-5-1200.webp" srcset="static/images/figure-5-1200.webp 1200w, static/images/figure-5-2400.webp 2400w" sizes="(min-width: 1140px) 1030px, 94vw" width="2400" height="2150" loading="lazy" decoding="async" alt="Four panels on hERG assay allocation. (a) Pipeline from 2,009 held-out compounds through BF16 predictions, arithmetic checks and R1 or R1+M recomputation to the native Biomni A1 agent and assay allocation. (b) Grid of compounds whose Top-402 or triage decision changed across 16 fault sources, with rows showing recovery by R1, R1+M and the agent. (c) Scatter of prediction displacement against healthy distance to the nearer decision boundary. (d) R1 residual against the minimum decision margin after R1, with the R1+M selection region shaded.">
+            <span class="zoom-hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><span class="en" lang="en">Enlarge</span><span class="zh" lang="zh-CN">放大</span></span>
+          </a>
+          <figcaption><b>Figure 2.</b> Changed hERG assay allocations and recovery. (a) BF16 predictions feed native Biomni selection and triage; R1 recomputes predictions flagged by arithmetic checks, and R1+M adds a margin rule that also recomputes 68 compounds near decision boundaries. (b) Changed decisions across 16 sources; the ring marks the discrepancy left by R1 and recovered by R1+M. Healthy margin is distance to the affected decision’s boundary; lower rows show recovery and the decisions of native Biomni runs on R1+M inputs. (c) Prediction displacement versus healthy distance to the nearer boundary; highlights mark changed decisions, and the lower strip shows entry with unchanged predictions. (d) R1 residual versus the minimum decision margin computed from R1 scores; shading marks R1+M selection. Dashed lines in (c,d) mark equality.</figcaption>
+        </figure>
+
+        <div class="commit">
+          <div>
+            <p class="eyebrow">Certified commitment</p>
+            <h3>Verify where the decision is committed</h3>
+            <p class="intro">Execution provenance records the values used, and a complete record preserves an incorrectly computed value as faithfully as a correct one. Trust in an action therefore needs an independent check of the computation behind it.</p>
+            <div class="prop">
+              <p class="prop-label">Proposition 1</p>
+              <p>Fix a computation contract (inputs, model, numerical representation and execution settings), a candidate set and a tie rule. After round <i>r</i>, the admissible set <span data-tex="\mathcal{U}_r"><i>U</i><sub>r</sub></span> fixes exactly recomputed scores and bounds the others. A decision <i>a</i> may authorize action only if</p>
+              <p class="eq eq-center" data-tex="g(q) = a \quad \text{for every } q \in \mathcal{U}_r"><i>g</i>(<i>q</i>) = <i>a</i> for every <i>q</i> ∈ <i>U</i><sub>r</sub></p>
+              <p>If the reference scores stay admissible, a certified decision equals the reference decision. If every uncertified round fixes at least one more score at its reference value, and fixed scores stay fixed, certification is reached within <i>n</i> rounds.</p>
+            </div>
+          </div>
+          <div>
+            <p class="panel-label">Algorithm 3 · certified commitment</p>
+            <ol class="steps">
+              <li><b>Hold</b><span>Hold tool outputs during independent arithmetic verification.</span></li>
+              <li><b>Recompute</b><span>On trusted hardware, recompute flagged predictions and scores whose decisions stay unresolved under valid bounds.</span></li>
+              <li><b>Restore</b><span>If the agent consumed a replaced output, restore its visible history and discard dependent state, pending actions and server-side caches.</span></li>
+              <li><b>Certify</b><span>Record the certified decision together with its supporting evidence.</span></li>
+              <li><b>Commit once</b><span>Commit only actions that agree with the current certificate, at most once per request. If verification fails or the budget runs out, recompute every score on trusted hardware or commit nothing.</span></li>
+            </ol>
+            <p class="timing">Cost on a healthy data-center GPU: streaming checks raise a 0.47 s forward pass to 0.59 s, against 1.02 s for the original FP64 implementation and 0.88 s for double execution.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 · page Figure 3 (paper Figure B1) -->
+    <section id="method" class="section alt" lang="en">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow"><span class="idx">02</span>Method</p>
+          <h2 class="sec-title">Restore or transplant values at their original coordinates</h2>
+        </header>
+
+        <div class="sec-body">
+          <div class="prose">
+            <p>We follow silent data corruption observed on faulty GPUs during distributed training. Finite, erroneous outputs can pass ordinary NaN/Inf monitoring and reach a tool result. <strong>Case 1</strong> (size-dependent) GPUs fail more often on tested large-matrix paths than on short probes; <strong>Case 2</strong> (expanded-trigger) GPUs also fail on those short probes.</p>
+            <p>With inputs, model, representation and document order matched, BioAgent-DF saves a reference state <i>h</i> and a candidate state <i>c</i> at the same computation site. Restoration and transplantation select values coordinate by coordinate. The remaining tool and agent steps run on healthy hardware, and repeated reference runs (H1, H2) measure how much the agent varies on its own.</p>
+          </div>
+          <aside class="aside">
+            <ul class="facts">
+              <li><span class="fact-v">405613.25</span><span class="fact-t">returned by an exact-integer FP32 probe whose correct result is 405760, a value that cannot arise under correct arithmetic</span></li>
+              <li><span class="fact-v">38 · 24 · 54 <span class="of">vs 0</span></span><span class="fact-t">mismatching tensor-core MMA outputs in three runs of one compiled kernel, against zero for the paired scalar FFMA</span></li>
+              <li><span class="fact-v" data-tex="\rho_D \le \rho_{\mathrm{state}}">ρ<sub>D</sub> ≤ ρ<sub>state</sub></span><span class="fact-t">recovering a decision can cost less than recovering the exact state: in hERG, 11–254 restored coordinates recovered K5612 selection and K7714 triage while hundreds of predictions still differed</span></li>
+            </ul>
+          </aside>
+        </div>
+
+        <div class="eqs">
+          <div class="eq-card">
+            <p class="panel-label">Residual</p>
+            <p class="eq" data-tex="r = \mathrm{FP32}(c) - \mathrm{FP32}(h)"><i>r</i> = FP32(<i>c</i>) − FP32(<i>h</i>)</p>
+            <p class="eq-note">Saved at one site; <i>h</i> and <i>c</i> share shape, coordinate indices and representation.</p>
+          </div>
+          <div class="eq-card">
+            <p class="panel-label">Restore · transplant</p>
+            <p class="eq" data-tex="R_S = \operatorname{select}(S, h, c)"><i>R</i><sub>S</sub> = select(<i>S</i>, <i>h</i>, <i>c</i>)</p>
+            <p class="eq" data-tex="T_S = \operatorname{select}(S, c, h)"><i>T</i><sub>S</sub> = select(<i>S</i>, <i>c</i>, <i>h</i>)</p>
+            <p class="eq-note">Take the first state inside the coordinate set <i>S</i> and the second elsewhere.</p>
+          </div>
+          <div class="eq-card">
+            <p class="panel-label">Endpoints</p>
+            <p class="eq" data-tex="P(\tau) = (E_{\mathrm{ret}}, E_{\mathrm{read}}, E_{\mathrm{cite}})"><i>P</i>(τ) = (<i>E</i><sub>ret</sub>, <i>E</i><sub>read</sub>, <i>E</i><sub>cite</sub>)</p>
+            <p class="eq" data-tex="D(\tau) = (P(\tau), A, V)"><i>D</i>(τ) = (<i>P</i>(τ), <i>A</i>, <i>V</i>)</p>
+            <p class="eq-note">Retrieved, read and cited evidence, plus structured actions <i>A</i> and verdict <i>V</i>.</p>
+          </div>
+        </div>
+
+        <figure class="fig">
+          <a class="fig-frame" href="static/images/figure-b1-2400.webp" data-title="Figure 3 · Tool-state interventions and computing platforms">
+            <img src="static/images/figure-b1-1200.webp" srcset="static/images/figure-b1-1200.webp 1200w, static/images/figure-b1-2400.webp 2400w" sizes="(min-width: 1140px) 1030px, 94vw" width="2400" height="2230" loading="lazy" decoding="async" alt="Three panels. (a) A training cluster with a silent fault produces paired reference and anomalous executions; their captured states h and c are combined by restore or transplant and continued on healthy hardware. (b) The RTX PCIe server and the eight-GPU NVLink/NVSwitch server, with single-node and dual-node layouts. (c) Flow from stored state to predictions and scores, then to decisions and task metrics, with an arithmetic contract checking the execution.">
+            <span class="zoom-hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><span class="en" lang="en">Enlarge</span><span class="zh" lang="zh-CN">放大</span></span>
+          </a>
+          <figcaption><b>Figure 3.</b> Tool-state interventions and computing platforms. (a) Paired states supply original-coordinate restoration and transplantation on healthy hardware. (b) The PCIe and NVLink/NVSwitch layouts indicate computing roles and participation. (c) Arithmetic checks, stored states, selection identities, and task metrics.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 03 · page Figure 4 (paper Figure C1) -->
+    <section id="mechanism" class="section" lang="en">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow"><span class="idx">03</span>Mechanism</p>
+          <h2 class="sec-title">Selection turns small residuals into discrete changes</h2>
+        </header>
+
+        <div class="sec-body">
+          <div class="prose">
+            <p>Tool outputs determine which items an agent can inspect, and selection is a competition. An unchanged score can still matter: for SciFact claim 684, one relevant document leaves the top five after three competitors change, and restoring or transplanting any two competitor scores recovers or reproduces the Recall@5 loss.</p>
+            <p>Recombining captured residuals across a panel of eight executions keeps each call’s values but changes which differences occur together. Of 4,096 recombined executions, 29 produce lists absent from their source group, and the BF16 score grid with a lower-index tie rule explains all 1,024 enumerated combinations.</p>
+            <div class="eq-card eq-wide">
+              <p class="panel-label">Error decomposition</p>
+              <p class="eq" data-tex="\Delta\mathrm{MSE} = 2\,\operatorname{mean}(e\,\delta) + \operatorname{mean}(\delta^{2})">ΔMSE = 2 mean(<i>e</i>δ) + mean(δ²)</p>
+              <p class="eq-note">With reference error <i>e</i> and candidate–reference difference δ on the same evaluation rows, favorable alignment can reduce MSE even when selection changes.</p>
+            </div>
+          </div>
+          <aside class="aside">
+            <ul class="facts">
+              <li><span class="fact-v">29 <span class="of">/ 4,096</span></span><span class="fact-t">recombined executions produce membership lists absent from their source group</span></li>
+              <li><span class="fact-v">1,024</span><span class="fact-t">enumerated combinations, all explained by BF16 score spacing and the lower-index tie rule</span></li>
+              <li><span class="fact-v">0.992 <span class="of">vs 0.498</span></span><span class="fact-t">recovery AUC for a block priority fixed before confirmation, against random priority, in a compound-activity model</span></li>
+            </ul>
+          </aside>
+        </div>
+
+        <figure class="fig">
+          <a class="fig-frame" href="static/images/figure-c1-2400.webp" data-title="Figure 4 · Recombination and competition">
+            <img src="static/images/figure-c1-1200.webp" srcset="static/images/figure-c1-1200.webp 1200w, static/images/figure-c1-2400.webp 2400w" sizes="(min-width: 1140px) 1030px, 94vw" width="2400" height="1813" loading="lazy" decoding="async" alt="Four panels. (a) Call-wise recombination of residuals yields 24 of 512 new memberships in the earlier group and 5 of 512 in the later group. (b) Exhaustive enumeration of 512 combinations per group, split by whether candidates 839 and 840 enter. (c) Two block switches and one tie rule determine which candidates enter. (d) The MSE change decomposed into an alignment term and a squared-difference term over separate decision and evaluation domains.">
+            <span class="zoom-hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><span class="en" lang="en">Enlarge</span><span class="zh" lang="zh-CN">放大</span></span>
+          </a>
+          <figcaption><b>Figure 4.</b> Recombination and competition. Finite combinations of captured residuals explain candidate membership and its relation to prediction error. The MSE panel shows the cross term and squared-difference term.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 04 · page Figure 5 (paper Figure D1) -->
+    <section id="endpoints" class="section alt" lang="en">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow"><span class="idx">04</span>Endpoints</p>
+          <h2 class="sec-title">Identical losses and metrics can hide changed states</h2>
+        </header>
+
+        <div class="sec-body">
+          <div class="prose">
+            <p>An eight-rank, two-node training continuation records 63 bitwise-identical FP32 losses with synchronized replicas, yet <strong>30,411 parameters, 60,025 first moments, 105,921 second moments</strong> and all 1,017 FP64 predictions differ from the reference.</p>
+            <p>The direction of an effect can also depend on the healthy reference: the change in test RMSE reverses sign between RTX and NVLink environments. In SciFact, four of five new captures change which documents are retrieved while every query’s relevance-label sequence, Recall@5 and nDCG@10 stay the same.</p>
+          </div>
+          <aside class="aside">
+            <ul class="facts">
+              <li><span class="fact-v">22 <span class="of">/ 160</span></span><span class="fact-t">training continuations change Top-20 order, while membership is unchanged in all 160</span></li>
+              <li><span class="fact-v">0 → 1 → 0</span><span class="fact-t">Top-20 order discordance along the AdamW restoration path CCC → HHC → HHH: a partial restoration can create a difference that neither endpoint shows</span></li>
+              <li><span class="fact-v">9 <span class="of">/ 45</span></span><span class="fact-t">SciFact source–treatment conditions change retrieved document IDs, with Recall@5 = 0.525 and nDCG@10 = 0.4636 in all 45</span></li>
+            </ul>
+          </aside>
+        </div>
+
+        <figure class="fig">
+          <a class="fig-frame" href="static/images/figure-d1-2400.webp" data-title="Figure 5 · Numerical and task endpoints">
+            <img src="static/images/figure-d1-1200.webp" srcset="static/images/figure-d1-1200.webp 1200w, static/images/figure-d1-2400.webp 2400w" sizes="(min-width: 1140px) 1030px, 94vw" width="2400" height="1233" loading="lazy" decoding="async" alt="Three panels. (a) Optimizer-state divergence: FP32 losses show zero difference at all 63 updates while up to 105,921 parameter and moment entries differ. (b) Change in test RMSE for five treatments, with opposite signs on the RTX and NVLink servers. (c) SciFact document exchanges across five sources, with Recall@5 = 0.525 and nDCG@10 = 0.4636 in every condition.">
+            <span class="zoom-hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><span class="en" lang="en">Enlarge</span><span class="zh" lang="zh-CN">放大</span></span>
+          </a>
+          <figcaption><b>Figure 5.</b> Numerical and task endpoints. (a) State divergence with unchanged losses. (b) Reversal of RMSE direction across healthy environments. (c) Document changes with unchanged relevance labels.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 05 · page Figure 6 (paper Figure 1), kept last -->
+    <section id="example" class="section finale" lang="en">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow"><span class="idx">05</span>SciFact claim 431</p>
+          <h2 class="sec-title">Same verdict, different cited evidence</h2>
+        </header>
+
+        <div class="sec-body">
+          <div class="prose">
+            <p>Claim 431 states that FoxO3a activation in neuronal death is mediated by reactive oxygen species. Replayed to the same Gemma 3 4B IT model on healthy hardware, the reference state leads the agent to cite a sentence about ROS and autophagy (19922508/3), and the candidate state a sentence on ROS sensing microbe size (22696649/1). Neither sentence supports the stated FoxO3a mechanism and neither matches the annotated evidence (28937856/5), yet both branches return the benchmark-correct SUPPORT label.</p>
+            <p>With the request seed fixed, all 27 selected combinations were rerun in eight further batches. In every batch, Qwen3.5-4B shows the same citation change in three capture–claim combinations and Gemma 3 4B IT the same read and citation change in four, while H1, H2 and full restoration agree and no verdict changes.</p>
+          </div>
+          <aside class="aside">
+            <ul class="facts">
+              <li><span class="fact-v">8</span><span class="fact-t">further batches of identical temperature-zero requests</span></li>
+              <li><span class="fact-v">3 + 4</span><span class="fact-t">repeatable Qwen and Gemma combinations, covering claims 431 and 729</span></li>
+              <li><span class="fact-v">0</span><span class="fact-t">verdict changes in those seven combinations</span></li>
+            </ul>
+          </aside>
+        </div>
+
+        <blockquote class="pullquote">Stable verdicts can conceal changed evidence paths, so audits should record what an agent reads and cites alongside its verdict.</blockquote>
+
+        <figure class="fig fig-final">
+          <a class="fig-frame" href="static/images/figure-1-2400.webp" data-title="Figure 6 · The same verdict from different cited evidence">
+            <img src="static/images/figure-1-1200.webp" srcset="static/images/figure-1-1200.webp 1200w, static/images/figure-1-2400.webp 2400w" sizes="(min-width: 1140px) 1030px, 94vw" width="2400" height="1787" loading="lazy" decoding="async" alt="Tool-state replay for SciFact claim 431. Reference (H) and candidate (C) tool states go to the same agent model on healthy hardware. H selects document 19922508, sentence 3, on autophagy; C selects document 22696649, sentence 1, on microbe size. Both return the correct SUPPORT label, and neither cites the annotated document 28937856, sentence 5. Lower panels show restoration and transplantation at the same coordinates, and the three evaluation endpoints: tool execution completion, evidence-path fidelity and verdict correctness.">
+            <span class="zoom-hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><span class="en" lang="en">Enlarge</span><span class="zh" lang="zh-CN">放大</span></span>
+          </a>
+          <figcaption><b>Figure 6.</b> The same verdict from different cited evidence. (a) Reference and candidate tool states are supplied to the same agent model on healthy hardware. Claim 431 concerns ROS-mediated FoxO3a activation in neuronal death. Gemma’s reference branch cites a sentence about ROS and autophagy (19922508/3), and its candidate branch cites ROS sensing microbe size (22696649/1). Neither sentence supports the stated FoxO3a mechanism, yet both branches return the benchmark-correct SUPPORT label. Neither citation matches the annotated evidence, 28937856/5. Sentence indices are zero-based and document identifiers are SciFact IDs. (b) Restoration and transplantation select values at their original coordinates. (c) Tool execution completion, evidence-path fidelity, and verdict correctness are evaluated. H1 and H2 repeat the same reference state.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Citation -->
+    <section id="cite" class="section cite" lang="en">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow">Citation</p>
+          <h2 class="sec-title">BibTeX</h2>
+        </header>
+        <div class="cite-box">
+          <button class="copy-btn" type="button" data-copy="bibtex">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Copy</span>
+          </button>
+<pre><code id="bibtex"><span class="b-type">@misc</span>{<span class="b-key">yi2026toolstate</span>,
+  <span class="b-field">title</span>         = {From Tool State to Scientific Action: Auditing Decision
+                   Provenance in Biomedical Research Agents},
+  <span class="b-field">author</span>        = {Yi, Xingyu and Zhang, Xinya and Zhou, Yunshen and Bao, Haoyu},
+  <span class="b-field">year</span>          = {2026},
+  <span class="b-field">eprint</span>        = {2611.01527},
+  <span class="b-field">archivePrefix</span> = {arXiv},
+  <span class="b-field">primaryClass</span>  = {cs.AI},
+  <span class="b-field">url</span>           = {https://arxiv.org/abs/2611.01527}
+}</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p lang="en"><b>BioAgent-DF</b> · Towards Trustworthy and Controllable Fully Automated Wet Labs</p>
+      <p class="en" lang="en">Computations were performed on <a href="https://intosyn.com">INTOSYN AI Labs</a> infrastructure. GPU checks: <a href="https://github.com/INTOSYN/Aritheia_GPU_Test">Aritheia</a>.</p>
+      <p class="zh" lang="zh-CN">计算在 <a href="https://intosyn.com">INTOSYN AI Labs</a> 的基础设施上完成。GPU 检查工具：<a href="https://github.com/INTOSYN/Aritheia_GPU_Test">Aritheia</a>。</p>
+    </div>
+  </footer>
+
+  <dialog class="lightbox" aria-label="Figure viewer">
+    <div class="lb-bar">
+      <span class="lb-title"></span>
+      <span class="lb-hint"></span>
+      <a class="lb-open" href="#" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>
+        <span class="en" lang="en">Original</span><span class="zh" lang="zh-CN">原图</span>
+      </a>
+      <button class="lb-close" type="button" aria-label="Close figure viewer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="lb-stage" lang="en"><img alt=""></div>
+  </dialog>
+</body>
+</html>
