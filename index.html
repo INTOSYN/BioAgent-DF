@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BioAgent-DF · From Tool State to Scientific Action</title>
-  <meta name="description" content="BioAgent-DF audits whether silent numerical faults in scientific tools change what biomedical research agents read, cite and decide, and what has to be restored to recover the reference decision.">
+  <meta name="description" content="Hardware is an overlooked variable in AI-driven scientific reproducibility. BioAgent-DF traces how silent numerical faults can change evidence selection and experimental decisions while aggregate metrics remain unchanged.">
   <meta name="author" content="Xingyu Yi, Xinya Zhang, Yunshen Zhou, Haoyu Bao">
   <meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0d1418" media="(prefers-color-scheme: dark)">
@@ -12,7 +12,7 @@
   <!-- Social preview: switch the image URLs to absolute ones once the site is live -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="From Tool State to Scientific Action: Auditing Decision Provenance in Biomedical Research Agents">
-  <meta property="og:description" content="A scientific agent can give the same verdict while reading and citing different evidence. BioAgent-DF traces and restores agents' evidence paths and actions under silent numerical faults.">
+  <meta property="og:description" content="Silent hardware faults can change scientific decisions while aggregate metrics remain unchanged. BioAgent-DF traces and restores evidence selection and assay allocation.">
   <meta property="og:image" content="static/images/og-image.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="BioAgent-DF · From Tool State to Scientific Action">
@@ -135,7 +135,7 @@
       <p class="note"><sup>*</sup>Corresponding author</p>
 
       <div class="actions">
-        <a class="btn btn-primary" href="https://arxiv.org/pdf/2611.01527">
+        <a class="btn btn-primary" href="2611.01527v1.pdf">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
           Paper
         </a>
@@ -157,16 +157,20 @@
 
   <main>
     <!-- Overview -->
-    <section id="overview" class="overview" lang="en">
+    <section id="overview" class="overview">
       <div class="wrap">
         <div class="tldr">
           <div class="tldr-text">
             <p class="eyebrow">TL;DR</p>
-            <h2>Same verdict.<br><em>Different evidence.</em></h2>
-            <p class="lead">A scientific agent can give the same verdict while reading and citing different evidence. BioAgent-DF tests this separation with paired reference and candidate values saved at the same scientific computation site. It restores or transplants those values at their original coordinates, runs the agent on healthy hardware, and compares what the agent retrieves, reads, cites, decides and concludes.</p>
+            <h2><span class="en" lang="en">Hardware can change<br><em>scientific decisions</em></span><span class="zh" lang="zh-CN">硬件可能改变<br><em>科学决策</em></span></h2>
+            <p class="lead"><span class="en" lang="en">Hardware is an overlooked reproducibility variable in AI-driven science: silent numerical faults can change evidence selection and experimental decisions even when aggregate metrics remain unchanged.</span><span class="zh" lang="zh-CN">硬件是 AI 驱动科学中一个被忽视的可重复性变量：静默数值故障可能在汇总指标不变时，改变证据选择和实验决策。</span></p>
+            <div class="overview-examples">
+              <p><b>hERG</b><span class="en" lang="en">The shortlist retains the same number of labeled blockers, but which compounds are sent for testing changes. <a href="#decisions">See the assay decisions →</a></span><span class="zh" lang="zh-CN">候选名单中的标注阻断剂数量不变，送检的化合物却变了。<a href="#decisions">查看检测分派 →</a></span></p>
+              <p><b>SciFact</b><span class="en" lang="en">In combinations selected for changed retrieval lists, agents can return the same verdict while reading or citing different evidence. <a href="#example">See the selection criteria and controls →</a></span><span class="zh" lang="zh-CN">在按检索列表变化筛选的组合中，Agent 的结论不变，读取或引用的证据却可能改变。<a href="#example">查看筛选条件与对照 →</a></span></p>
+            </div>
             <ul class="legend">
-              <li><span class="key h" aria-hidden="true">H</span><span><b>Reference state.</b> Values from a matched healthy execution.</span></li>
-              <li><span class="key c" aria-hidden="true">C</span><span><b>Candidate state.</b> Values saved at the same site, for example on a GPU with silent arithmetic faults.</span></li>
+              <li><span class="key h" aria-hidden="true">H</span><span class="en" lang="en"><b>Reference state.</b> Values from a matched healthy execution.</span><span class="zh" lang="zh-CN"><b>参考状态。</b>来自匹配健康运行的数值。</span></li>
+              <li><span class="key c" aria-hidden="true">C</span><span class="en" lang="en"><b>Candidate state.</b> Values captured at the same computation site on faulty hardware.</span><span class="zh" lang="zh-CN"><b>受测状态。</b>在故障硬件上同一计算位置捕获的数值。</span></li>
             </ul>
           </div>
 
@@ -227,22 +231,23 @@
 
         <div class="stats">
           <div class="stat c">
-            <p class="stat-value">7</p>
-            <p class="stat-label">capture–claim combinations with repeatable read or citation changes across eight SciFact batches, with verdicts unchanged</p>
+            <p class="stat-value">6<small>/8</small></p>
+            <p class="stat-label"><span class="en" lang="en">Case 2: expanded-trigger sources changed hERG shortlist membership; six of eight also changed testing assignments</span><span class="zh" lang="zh-CN">Case 2：触发范围扩展型计算源改变了 hERG 候选名单成员；检测分派也在八个源中的六个发生变化</span></p>
           </div>
           <div class="stat c">
-            <p class="stat-value">351<small>/402</small></p>
-            <p class="stat-label">compounds on the hERG Top-402 shortlist labeled as blockers, unchanged even as the compounds assigned to testing changed</p>
+            <p class="stat-value">2</p>
+            <p class="stat-label"><span class="en" lang="en">labeled hERG blockers, K12252 and K1461, assigned to advancement without testing in faulty runs</span><span class="zh" lang="zh-CN">标注为 hERG 阻断剂的 K12252 和 K1461，在故障运行中被分派为免检推进</span></p>
           </div>
           <div class="stat">
             <p class="stat-value">39<small>/39</small></p>
-            <p class="stat-label">changed decisions recovered by restoring the agent’s earlier execution state; replacing the prediction file recovered none</p>
+            <p class="stat-label"><span class="en" lang="en">changed decisions recovered by restoring the agent’s earlier execution state; replacing the prediction file recovered none</span><span class="zh" lang="zh-CN">已改变的决策经恢复 Agent 读取前的执行态后恢复；仅替换预测文件未恢复任何一个</span></p>
           </div>
           <div class="stat">
             <p class="stat-value">42.4<small>%</small></p>
-            <p class="stat-label">less time for forward execution plus verification than the original FP64 checks, with identical flags and recovery outputs</p>
+            <p class="stat-label"><span class="en" lang="en">less time for forward execution plus verification than the original FP64 checks, with identical flags and recovery outputs</span><span class="zh" lang="zh-CN">相比原始 FP64 校验，前向计算与验证总耗时降低，异常标记及恢复输出保持一致</span></p>
           </div>
         </div>
+        <p class="scope-note"><span class="en" lang="en">Case 1: size-dependent faults appear more often on tested large-matrix paths than on short probes. Case 2: expanded-trigger faults also appear on short probes.</span><span class="zh" lang="zh-CN">Case 1：尺寸依赖型，在所测试的大矩阵路径上比短探针更常出现异常；Case 2：触发范围扩展型，也会在短探针上出现异常。</span></p>
       </div>
     </section>
 
@@ -254,17 +259,19 @@
         </div>
         <div class="abstract-text">
           <div class="zh" lang="zh-CN">
-            <p class="promo-lead">我们在生产训练集群中发现了两类存在静默数值异常的 GPU：训练仍在正常运行，底层计算却已出现偏差。</p>
-            <p>在 hERG 心脏安全性筛查中，这些真实硬件故障产生的数值偏差改变了科研 Agent 的决策，甚至<mark class="hl-c">错误地将原本应送检的 hERG 阻断剂划为免检</mark>，而整体统计指标仍可能保持不变。</p>
-            <p>为此，我们提出 BioAgent-DF，构建了一套贯穿 GPU 数值校验、可信重算、Agent 状态恢复与决策认证的科学决策保真框架。在论文实验中，<mark class="hl">39</mark> 个受故障影响而改变的 Agent 决策经状态恢复后，全部与健康 GPU 下的参考决策一致。同时，相较于原始 FP64 校验方案，Streaming 流式校验将额外验证耗时降低 <mark class="hl">78.2%</mark>，计算与验证总耗时降低 <mark class="hl">42.4%</mark>。</p>
-            <p>从真实生产环境中的 GPU 数值故障，到科研 Agent 的决策保真，再到未来的 Autonomous Wet Lab，我们希望以 BioAgent-DF 为可信决策核心，将计算验证、Agent 状态恢复、实验执行授权、机器人操作与真实测量连接成完整的科学可信链路，构建面向下一代全自动化实验室的可信基础设施。</p>
+            <p class="promo-lead">AI 驱动科学的可重复性，还取决于产生工具数值的硬件。汇总指标稳定，不能保证证据选择和实验决策也稳定。</p>
+            <p><strong>我们在生产训练集群中发现了两类存在静默数值异常的 GPU：程序没有报错，训练持续运行，底层计算却已悄然发生偏差。</strong>OSDI’26 的两项生产集群研究也分别表征了 <a href="https://www.usenix.org/conference/osdi26/presentation/zheng">23 张存在静默数据损坏（SDC）的 GPU</a>，以及覆盖 <a href="https://www.usenix.org/conference/osdi26/presentation/lei">3,500 万 GPU 小时的在线检测部署</a>。</p>
+            <p>我们将捕获的工具数值在健康硬件上配对回放。在 hERG 筛查中，候选名单中的标注阻断剂数量保持不变，送检名单和分派却发生变化，甚至<mark class="hl-c">将参考决策要求送检的两种标注阻断剂划为免检推进</mark>。在 SciFact 中，按检索列表已改变筛选的组合可出现“结论不变、证据路径改变”；未按这一条件筛选的队列没有观察到超出健康重复的差异。这两类实验共同说明：应同时检查汇总结果与产生科学行动的具体证据和对象。</p>
+            <p>为此，我们提出 BioAgent-DF，构建了一套从 GPU 数值校验、可信重算，到 Agent 状态恢复与决策认证的端到端科学决策保真框架。实验中，因故障而改变的 Agent 决策经状态恢复后，全部与健康运行下的参考决策一致。同时，相较于传统 FP64 校验方案，Streaming 流式校验将额外验证耗时降低 <mark class="hl">78.2%</mark>，计算与验证总耗时降低 <mark class="hl">42.4%</mark>。</p>
+            <p>从生产集群中的静默数值故障，到科研 Agent 的决策保真，再到未来的 Autonomous Wet Lab，我们希望以 BioAgent-DF 为可信决策核心，将可信计算与科学决策的保障延伸至真实物理实验，构建贯穿计算、决策、执行与测量的下一代自主实验室可信基础设施。</p>
             <p class="motto"><span>让每一次科学决策有据可验，</span><span>让每一步实验过程有迹可循，</span><span>让每一项研究结论都能基于原始证据被重新审查与纠正。</span></p>
           </div>
           <div class="en" lang="en">
-            <p class="promo-lead">In production training clusters, we found two classes of GPUs with silent numerical anomalies: training kept running normally while the underlying computation had already gone wrong.</p>
-            <p>In hERG cardiac-safety screening, numerical errors from these real hardware faults changed a research agent’s decisions, even <mark class="hl-c">marking hERG blockers that should have been sent for testing as exempt</mark>, while aggregate statistics could stay unchanged.</p>
-            <p>To address this, we propose BioAgent-DF, a scientific decision-fidelity framework that spans GPU numerical verification, trusted recomputation, agent state restoration and decision certification. In the paper’s experiments, all <mark class="hl">39</mark> agent decisions changed by the faults matched the reference decisions on a healthy GPU after state restoration. Compared with the original FP64 checks, streaming verification cuts the added verification time by <mark class="hl">78.2%</mark> and the total compute-and-verification time by <mark class="hl">42.4%</mark>.</p>
-            <p>From GPU numerical faults in real production environments, to decision fidelity in research agents, to the autonomous wet lab of the future: we aim to make BioAgent-DF the trusted decision core that links computational verification, agent state restoration, authorization of experiment execution, robotic operation and real measurements into one complete chain of scientific trust, as trustworthy infrastructure for the next generation of fully automated laboratories.</p>
+            <p class="promo-lead">Reproducibility in AI-driven science also depends on the hardware that produces tool values. Stable aggregate metrics do not ensure stable evidence selection or experimental decisions.</p>
+            <p><strong>In production training clusters, we found two classes of GPUs with silent numerical anomalies: programs reported no errors and training continued, while the underlying calculations had quietly diverged.</strong> Two OSDI’26 production-cluster studies also characterize <a href="https://www.usenix.org/conference/osdi26/presentation/zheng">23 GPUs affected by silent data corruption (SDC)</a> and an <a href="https://www.usenix.org/conference/osdi26/presentation/lei">online detection deployment spanning 35 million GPU-hours</a>, respectively.</p>
+            <p>We replay captured tool values in paired runs on healthy hardware. In hERG screening, the shortlist retains the same number of labeled blockers while shortlist membership and testing assignments change, including <mark class="hl-c">two labeled blockers routed to advancement without testing instead of the reference decision to test</mark>. In SciFact combinations selected for changed retrieval lists, verdicts can stay unchanged while evidence paths change; a cohort without this selection shows no excess over healthy-repeat variation. Both experiments motivate checking the evidence and objects behind scientific actions alongside aggregate results.</p>
+            <p>To address this, we propose BioAgent-DF, an end-to-end scientific decision-fidelity framework spanning GPU numerical verification, trusted recomputation, agent state restoration and decision certification. In our experiments, all agent decisions changed by the faults matched the healthy reference decisions after state restoration. Compared with the conventional FP64 verification baseline, streaming verification reduces the added verification time by <mark class="hl">78.2%</mark> and the total compute-and-verification time by <mark class="hl">42.4%</mark>.</p>
+            <p>From silent numerical faults in production clusters, through decision fidelity in research agents, to future autonomous wet labs, we aim to make BioAgent-DF a trusted decision core that extends reliable computation and scientific decision-making into physical experiments. Our goal is trusted infrastructure spanning computation, decisions, execution and measurement for the next generation of autonomous laboratories.</p>
             <p class="motto"><span>Every scientific decision, verifiable against evidence.</span><span>Every experimental step, traceable.</span><span>Every conclusion, open to re-examination and correction from the original evidence.</span></p>
           </div>
         </div>
@@ -353,8 +360,8 @@
               </div>
               <div class="tp-card proposed">
                 <p class="tp-label"><span class="sw sw-dashed" aria-hidden="true"></span><span class="en" lang="en">Proposed</span><span class="zh" lang="zh-CN">拟议</span></p>
-                <div class="en" lang="en"><p>Extend verification to activations, attention, softmax and indexing, and aggregation. The paper already shows that these operators can go wrong: all 2,048 rows of attention probabilities are finite and normalized, yet 58 change their maximum-attention position; on Case 1 GPUs, finite LLM option scores still change the selected option. Certify decisions with the valid per-score error bounds of Corollary 1.</p></div>
-                <div class="zh" lang="zh-CN"><p>将校验扩展到激活、注意力、softmax 与索引、聚合等算子。论文已给出这些算子会出问题的证据：2,048 行注意力概率全部有限且归一化，仍有 58 行的最大注意力位置改变；Case 1 GPU 上 LLM 的选项分数有限却改变了所选选项。以 Corollary 1 的有效逐分数误差界认证决策。</p></div>
+                <div class="en" lang="en"><p>Extend verification to activations, attention, softmax and indexing, and aggregation. We find that upstream numerical deviations can propagate through subsequent operators and change attention positions or model choices: all 2,048 rows of attention probabilities are finite and normalized, yet 58 change their maximum-attention position; on Case 1 GPUs, finite LLM option scores still change the selected option. Certify decisions with the valid per-score error bounds of Corollary 1.</p></div>
+                <div class="zh" lang="zh-CN"><p>将校验扩展到激活、注意力、softmax 与索引、聚合等算子。我们发现上游数值偏差可经后续算子传播，并改变注意力位置或模型选择：2,048 行注意力概率全部有限且归一化，仍有 58 行的最大注意力位置改变；Case 1 GPU 上 LLM 的选项分数有限却改变了所选选项。以 Corollary 1 的有效逐分数误差界认证决策。</p></div>
               </div>
               <div class="tp-card why">
                 <p class="tp-label"><span class="en" lang="en">Why it matters</span><span class="zh" lang="zh-CN">意义</span></p>
@@ -469,14 +476,23 @@
       <div class="wrap">
         <header class="sec-head">
           <p class="eyebrow"><span class="idx">01</span>From tool state to scientific action</p>
-          <h2 class="sec-title">Silent numerical faults change which compounds get tested</h2>
+          <h2 class="sec-title"><span class="en" lang="en">Silent numerical faults change which compounds get tested</span><span class="zh" lang="zh-CN">静默数值故障改变了哪些化合物会被送检</span></h2>
         </header>
 
         <div class="sec-body">
           <div class="prose">
-            <p>A three-member Chemprop D-MPNN ensemble predicts blockade of the hERG potassium channel, a cardiac-safety liability, for 2,009 held-out compounds. A native Biomni A1 agent (GPT-6.1 Sol) then selects the 402 highest-scoring compounds for measurement and assigns every compound to patch-clamp testing or advancement without testing. Sixteen saved BF16 passes, eight per GPU fault class, are compared with a healthy reference from the same GPU model and host.</p>
-            <p>Case 2 faults changed each endpoint in six of eight sources. Every list replacement exchanged labeled blockers, so the shortlist still held <strong>351 labeled blockers among its 402 compounds</strong> while the compounds assigned to testing changed. The changes reached beyond near-ties: K8429 fell from 0.880 to 0.584 and left the list, while K12096 and K2422 entered with unchanged predictions because competitors fell.</p>
-            <p><strong>R1</strong> recomputes on healthy hardware the predictions flagged by row and column checksums with a rounding bound. <strong>R1+M</strong> adds a margin rule that also recomputes the 68 compounds whose decision margin falls below <span data-tex="\varepsilon = 0.009354">ε = 0.009354</span>. Selection and triage then matched the healthy reference in all 16 sources, and all 96 fresh Biomni trajectories on R1+M inputs reproduced the healthy decisions.</p>
+            <div class="en" lang="en">
+              <p>A three-member Chemprop D-MPNN ensemble predicts blockade of the hERG potassium channel, a cardiac-safety liability, for 2,009 held-out compounds. A native Biomni A1 agent (GPT-6.1 Sol) selects the 402 highest-scoring compounds for measurement and assigns every compound to patch-clamp testing or advancement without testing. Sixteen saved BF16 passes, eight per fault class, are compared with a healthy reference from the same GPU model and host.</p>
+              <p><strong>Case 1: size-dependent</strong> faults appear more often on the tested large-matrix paths than on short probes. <strong>Case 2: expanded-trigger</strong> faults also appear on short probes. Case 1 preserved shortlist membership and changed testing assignments in <strong>1/8 sources</strong>; Case 2 changed shortlist membership in <strong>6/8</strong> and testing assignments in <strong>6/8</strong>.</p>
+              <p>Every list replacement exchanged labeled blockers. The shortlist therefore still contained <strong>351 labeled blockers among 402 compounds</strong>, even though its members and testing assignments changed. K12252 and K1461, both labeled blockers, were assigned to advancement without testing although the reference decision required testing. The changes extended beyond near-ties: K8429 fell from 0.880 to 0.584 and left the list, while K12096 and K2422 entered with unchanged predictions because competitors fell.</p>
+              <p><strong>R1</strong> recomputes on healthy hardware the predictions flagged by row and column checksums with a rounding bound. <strong>R1+M</strong> also recomputes the 68 compounds whose decision margin falls below <span data-tex="\varepsilon = 0.009354">ε = 0.009354</span>. Selection and triage then matched the healthy reference in all 16 sources, and all 96 fresh Biomni trajectories on R1+M inputs reproduced the healthy decisions.</p>
+            </div>
+            <div class="zh" lang="zh-CN">
+              <p>三个 Chemprop D-MPNN 模型组成的集成，为 2,009 个留出化合物预测 hERG 钾通道阻断风险。原生 Biomni A1 Agent（GPT-6.1 Sol）选取分数最高的 402 个化合物作为测量候选，并将每个化合物分派为膜片钳检测或免检推进。确认实验比较了 16 个保存的 BF16 计算过程，每类故障八个，与相同 GPU 型号、相同主机上的健康参考配对。</p>
+              <p><strong>Case 1：尺寸依赖型</strong>，在所测试的大矩阵路径上比短探针更常出现异常；<strong>Case 2：触发范围扩展型</strong>，也会在短探针上出现异常。Case 1 保持候选名单成员不变，仅 <strong>1/8 个源</strong>改变检测分派；Case 2 的候选名单成员和检测分派分别在 <strong>6/8 个源</strong>中改变。</p>
+              <p>所有名单替换都发生在标注阻断剂之间。因此，候选名单中仍有<strong>402 个化合物里的 351 个标注阻断剂</strong>，具体成员和检测分派却已经改变。标注为阻断剂的 K12252 和 K1461 被分派为免检推进，而参考决策要求送检。变化也不限于分数接近的候选：K8429 从 0.880 降至 0.584 后离开名单，K12096 和 K2422 自身预测不变，却因竞争对象分数下降而进入名单。</p>
+              <p><strong>R1</strong> 在健康硬件上重算被行列校验和及舍入误差界标记的预测。<strong>R1+M</strong> 还重算决策余量低于 <span data-tex="\varepsilon = 0.009354">ε = 0.009354</span> 的 68 个化合物。随后，全部 16 个源的选择与分派都与健康参考一致，基于 R1+M 输入新运行的 96 条 Biomni 轨迹也全部复现健康决策。</p>
+            </div>
           </div>
 
           <aside class="aside">
@@ -660,24 +676,48 @@
       <div class="wrap">
         <header class="sec-head">
           <p class="eyebrow"><span class="idx">05</span>SciFact claim 431</p>
-          <h2 class="sec-title">Same verdict, different cited evidence</h2>
+          <h2 class="sec-title"><span class="en" lang="en">Same verdict, different cited evidence</span><span class="zh" lang="zh-CN">结论不变，引用的证据变了</span></h2>
         </header>
 
         <div class="sec-body">
           <div class="prose">
-            <p>Claim 431 states that FoxO3a activation in neuronal death is mediated by reactive oxygen species. Replayed to the same Gemma 3 4B IT model on healthy hardware, the reference state leads the agent to cite a sentence about ROS and autophagy (19922508/3), and the candidate state a sentence on ROS sensing microbe size (22696649/1). Neither sentence supports the stated FoxO3a mechanism and neither matches the annotated evidence (28937856/5), yet both branches return the benchmark-correct SUPPORT label.</p>
-            <p>With the request seed fixed, all 27 selected combinations were rerun in eight further batches. In every batch, Qwen3.5-4B shows the same citation change in three capture–claim combinations and Gemma 3 4B IT the same read and citation change in four, while H1, H2 and full restoration agree and no verdict changes.</p>
+            <div class="en" lang="en">
+              <p>This mechanism study selected 27 Case 2: expanded-trigger capture–claim combinations, covering 11 claims, <strong>because their upstream Top-10 retrieval lists had already changed</strong>.</p>
+              <p>Claim 431 states that FoxO3a activation in neuronal death is mediated by reactive oxygen species. Replayed to the same Gemma 3 4B IT model on healthy hardware, the reference state leads the agent to cite a sentence about ROS and autophagy (19922508/3), and the candidate state a sentence on ROS sensing microbe size (22696649/1). Neither sentence supports the stated FoxO3a mechanism and neither matches the annotated evidence (28937856/5), yet both branches return the benchmark-correct SUPPORT label.</p>
+              <p>All 27 selected combinations were rerun in eight further batches with the request seed fixed. Three Qwen3.5-4B combinations show the same citation change in every batch; four Gemma 3 4B IT combinations show the same read and citation change. H1, H2 and full restoration agree, and verdicts do not change. These <strong>seven model-specific combinations involve only claims 431 and 729</strong>.</p>
+            </div>
+            <div class="zh" lang="zh-CN">
+              <p>机制实验选取了 27 个 Case 2：触发范围扩展型捕获–声明组合，覆盖 11 条声明，筛选依据是<strong>上游 Top-10 检索列表已经发生变化</strong>。</p>
+              <p>声明 431 讨论神经元死亡中由活性氧介导的 FoxO3a 激活。在健康硬件上回放给同一 Gemma 3 4B IT 模型时，参考状态让 Agent 引用关于活性氧与自噬的句子（19922508/3），受测状态让它引用关于活性氧感知微生物大小的句子（22696649/1）。两句话都不支持声明中的 FoxO3a 机制，也都不是标注证据（28937856/5），但两条轨迹均给出基准判定正确的 SUPPORT 标签。</p>
+              <p>固定请求种子后，全部 27 个筛选组合又运行了八批。Qwen3.5-4B 有三个组合在每批中都出现相同的引用变化，Gemma 3 4B IT 有四个组合出现相同的读取与引用变化；H1、H2 和全量恢复相互一致，结论标签未改变。这<strong>七个按模型计的组合仅涉及声明 431 和 729</strong>。</p>
+            </div>
           </div>
           <aside class="aside">
             <ul class="facts">
-              <li><span class="fact-v">8</span><span class="fact-t">further batches of identical temperature-zero requests</span></li>
-              <li><span class="fact-v">3 + 4</span><span class="fact-t">repeatable Qwen and Gemma combinations, covering claims 431 and 729</span></li>
-              <li><span class="fact-v">0</span><span class="fact-t">verdict changes in those seven combinations</span></li>
+              <li><span class="fact-v">27</span><span class="fact-t"><span class="en" lang="en">capture–claim combinations selected for changed upstream retrieval lists, covering 11 claims</span><span class="zh" lang="zh-CN">按上游检索列表变化筛选的捕获–声明组合，覆盖 11 条声明</span></span></li>
+              <li><span class="fact-v">3 + 4</span><span class="fact-t"><span class="en" lang="en">Qwen and Gemma combinations with repeatable changes across all eight further batches; only claims 431 and 729</span><span class="zh" lang="zh-CN">Qwen 与 Gemma 在后续八批中均复现变化的组合数；仅涉及声明 431 和 729</span></span></li>
+              <li><span class="fact-v">0</span><span class="fact-t"><span class="en" lang="en">verdict changes in those seven combinations</span><span class="zh" lang="zh-CN">上述七个组合中的结论标签变化数</span></span></li>
             </ul>
           </aside>
         </div>
 
-        <blockquote class="pullquote">Stable verdicts can conceal changed evidence paths, so audits should record what an agent reads and cites alongside its verdict.</blockquote>
+        <div class="control-panel">
+          <h3><span class="en" lang="en">Without selecting for an upstream change</span><span class="zh" lang="zh-CN">不按上游变化筛选时</span></h3>
+          <p><span class="en" lang="en">In the separate sustained-batching Qwen cohort, 382 of 421 groups were jointly completed and exposed to the tool result; the other 39 were incomplete or unexposed. Candidate-versus-reference differences were no greater than healthy-repeat differences (<a href="2611.01527v1.pdf#page=7">paper Table 2</a>).</span><span class="zh" lang="zh-CN">在单独的 Qwen 持续批处理队列中，421 组里有 382 组满足联合完成且已接触工具结果的条件，其余 39 组未完成或未接触结果。受测状态相对参考状态的差异不高于健康重复之间的差异（<a href="2611.01527v1.pdf#page=7">论文表 2</a>）。</span></p>
+          <div class="control-table-wrap">
+            <table class="control-table">
+              <caption><span class="en" lang="en">Discordant groups among the same 382 completed, exposed groups</span><span class="zh" lang="zh-CN">同一批 382 个完成且已接触结果的组中，发生差异的组数</span></caption>
+              <thead><tr><th scope="col"><span class="en" lang="en">Endpoint</span><span class="zh" lang="zh-CN">比较对象</span></th><th scope="col">C vs H1</th><th scope="col">H2 vs H1</th></tr></thead>
+              <tbody>
+                <tr><th scope="row"><span class="en" lang="en">Documents read</span><span class="zh" lang="zh-CN">读取文档成员</span></th><td>3/382</td><td>4/382</td></tr>
+                <tr><th scope="row"><span class="en" lang="en">Cited sentences</span><span class="zh" lang="zh-CN">引用句子</span></th><td>5/382</td><td>8/382</td></tr>
+                <tr><th scope="row"><span class="en" lang="en">Verdict</span><span class="zh" lang="zh-CN">结论标签</span></th><td>2/382</td><td>2/382</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="scope-note"><span class="en" lang="en">C is the candidate state; H1 and H2 repeat the healthy reference state. All capture-weighted intervals include zero. Separate unselected controls for claims 350 and 1180 also showed no read, citation or verdict changes in their completed comparison subsets; baseline Gemma completed only claim 350.</span><span class="zh" lang="zh-CN">C 为受测状态，H1 与 H2 为健康参考状态的重复运行。所有按捕获等权计算的区间均包含零。另行设置的未筛选声明 350 与 1180 对照，在已完成的比较子集中也未出现读取、引用或结论变化；基线 Gemma 完成的子集仅覆盖声明 350。</span></p>
+        </div>
+        <blockquote class="pullquote"><span class="en" lang="en">Record the evidence and experimental choices behind a result, and compare their changes with healthy-repeat variation.</span><span class="zh" lang="zh-CN">记录结果背后的证据与实验选择，并将其变化与健康重复的波动比较。</span></blockquote>
 
         <figure class="fig fig-final">
           <a class="fig-frame" href="static/images/figure-1-2400.webp" data-title="Figure 6 · The same verdict from different cited evidence">

@@ -368,6 +368,19 @@ section[id] { scroll-margin-top: 64px; }
 }
 .tldr h2 em { font-style: italic; color: var(--coral-ink); }
 .tldr .lead { margin-top: 20px; font-size: 18px; line-height: 1.66; }
+.overview-examples { margin-top: 20px; display: grid; gap: 14px; font-size: 15px; line-height: 1.6; }
+.overview-examples p { margin: 0; }
+.overview-examples b { display: block; color: var(--ink); margin-bottom: 3px; }
+.overview-examples a { color: var(--teal-ink); text-underline-offset: 3px; }
+.scope-note { margin-top: 18px; font-size: 13.5px; line-height: 1.7; color: var(--muted); }
+.control-panel { margin-top: 32px; padding: clamp(20px, 3vw, 32px); border: 1px solid var(--teal-line); border-radius: 18px; background: var(--teal-soft); }
+.control-panel h3 { font: 600 23px/1.3 var(--serif); margin: 0 0 16px; }
+.control-panel p { line-height: 1.7; }
+.control-table-wrap { overflow-x: auto; margin-top: 20px; }
+.control-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.control-table caption { text-align: left; margin-bottom: 12px; font-size: 13px; color: var(--muted); }
+.control-table th, .control-table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--teal-line); }
+.control-table td { font-variant-numeric: tabular-nums; }
 
 .legend { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 12px; font-size: 15px; line-height: 1.5; color: var(--muted); }
 .legend li { display: flex; gap: 12px; align-items: flex-start; }
