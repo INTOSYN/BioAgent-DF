@@ -447,7 +447,7 @@ section[id] { scroll-margin-top: 64px; }
 
 .abstract-grid { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 48px; }
 .abstract-grid .eyebrow { position: sticky; top: 92px; }
-.abstract-text { max-width: 780px; }
+.abstract-text { max-width: 816px; }
 .abstract-text p {
   font: 400 clamp(17px, 1rem + .3vw, 19.5px)/1.74 var(--serif);
   color: var(--text);
