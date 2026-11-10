@@ -40,9 +40,9 @@
   --code-bg: #132330;
   --code-text: #dce6ea;
   --radius: 18px;
-  --sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
-  --serif: "Source Serif 4", "Iowan Old Style", "Palatino Linotype", Georgia, "Noto Serif SC", "Songti SC", serif;
-  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --serif: "Iowan Old Style", Georgia, "Songti SC", "STSong", serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -193,7 +193,7 @@ section[id] { scroll-margin-top: 64px; }
 .mk-c { stroke: #ef7a52; }
 .mk-dot { fill: var(--bg); }
 
-.nav-links { display: flex; gap: 2px; margin-left: auto; }
+.nav-links { display: flex; align-items: center; gap: 2px; margin-left: auto; }
 .nav-links a {
   font: 500 14px/1 var(--sans); color: var(--muted); text-decoration: none;
   padding: 9px 11px; border-radius: 8px;
@@ -201,6 +201,8 @@ section[id] { scroll-margin-top: 64px; }
 }
 .nav-links a:hover { color: var(--ink); background: var(--surface-2); }
 .nav-links a.active { color: var(--ink); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.topnav .brand, .nav-tools { flex-shrink: 0; white-space: nowrap; }
+html[data-lang="en"] .nav-links a { padding-inline: 8px; font-size: 13.5px; white-space: nowrap; }
 
 .nav-tools { display: flex; align-items: center; gap: 8px; margin-left: 6px; }
 .lang-toggle {
@@ -268,6 +270,11 @@ section[id] { scroll-margin-top: 64px; }
   display: block; margin-top: 18px;
   font: italic 400 clamp(1.12rem, .92rem + .95vw, 1.62rem)/1.3 var(--serif);
   letter-spacing: -.004em; color: var(--muted);
+}
+@media (min-width: 1200px) {
+  .hero > .wrap { max-width: 1320px; }
+  .hero h1 { max-width: none; font-size: clamp(3rem, 4.5vw, 4.1rem); }
+  .hero-title { white-space: nowrap; }
 }
 
 .authors, .affils { list-style: none; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; }
@@ -774,6 +781,8 @@ html:has(.lightbox[open]) { overflow: hidden; }
 
 @media (max-width: 1100px) {
   .nav-links a { padding: 9px 8px; font-size: 13.5px; }
+  .nav-links { display: none; }
+  .nav-tools { margin-left: auto; }
 }
 @media (max-width: 1000px) {
   .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -821,3 +830,8 @@ html:has(.lightbox[open]) { overflow: hidden; }
   .tour-text[hidden] { display: block !important; }
   .tour-layer { transform: none !important; }
 }
+
+/* Static MathML: no external font or equation runtime. */
+.eq { overflow-x: auto; max-width: 100%; }
+.eq math[display="block"] { margin: .65em 0; text-align: left; }
+.math-definition .eq math[display="block"] { text-align: center; }

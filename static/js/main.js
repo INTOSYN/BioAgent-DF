@@ -123,21 +123,54 @@
     });
   });
 
-  /* ---------- Math (KaTeX loads after this script; plain-text fallbacks stay if it fails) ---------- */
-  function renderMath() {
-    if (!window.katex) return;
-    var nodes = document.querySelectorAll("[data-tex]:not([data-rendered])");
-    for (var i = 0; i < nodes.length; i++) {
-      try {
-        window.katex.render(nodes[i].getAttribute("data-tex"), nodes[i], { throwOnError: false });
-        nodes[i].setAttribute("data-rendered", "");
-      } catch (e) {}
-    }
+  /* Equations are embedded MathML; no runtime CDN is required. */
+  onLangChange(function () {
+    document.querySelectorAll("[data-alt-en]").forEach(function (el) {
+      el.alt = el.getAttribute(lang() === "zh" ? "data-alt-zh" : "data-alt-en");
+    });
+
+  });
+
+
+  /* ---------- Inline mathematical explanations ---------- */
+  var mathSection = document.getElementById("mathematics");
+  var mathToggle = document.querySelector(".math-toggle-all");
+  function syncMathToggle() {
+    if (!mathSection || !mathToggle) return;
+    var panels = Array.prototype.slice.call(mathSection.querySelectorAll(".method-step,.method-extra"));
+    mathToggle.setAttribute("aria-expanded", panels.length && panels.every(function (p) { return p.open; }) ? "true" : "false");
   }
-  var katexScript = document.getElementById("katex-js");
-  if (katexScript) katexScript.addEventListener("load", renderMath);
-  window.addEventListener("load", renderMath);
-  renderMath();
+  if (mathSection && mathToggle) {
+    mathToggle.addEventListener("click", function () {
+      var open = mathToggle.getAttribute("aria-expanded") !== "true";
+      mathSection.querySelectorAll("details").forEach(function (p) { p.open = open; });
+      syncMathToggle();
+    });
+    mathSection.querySelectorAll("details").forEach(function (p) { p.addEventListener("toggle", syncMathToggle); });
+  }
+  function revealMathTarget(id, scroll) {
+    if (!/^(math-|native-results$)/.test(id)) return false;
+    var target = document.getElementById(id);
+    if (!target || !mathSection || !mathSection.contains(target)) return false;
+    for (var el = target; el && el !== mathSection; el = el.parentElement) {
+      if (el.tagName === "DETAILS") el.open = true;
+    }
+    syncMathToggle();
+    if (scroll) requestAnimationFrame(function () {
+      target.scrollIntoView({behavior: reduceMotion.matches ? "auto" : "smooth", block:"start"});
+    });
+    return true;
+  }
+  document.addEventListener("click", function (event) {
+    var link = event.target.closest('a[href^="#"]');
+    if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    var id = link.getAttribute("href").slice(1);
+    if (!revealMathTarget(id, true)) return;
+    event.preventDefault();
+    if (location.hash !== "#" + id) history.pushState(null, "", "#" + id);
+  });
+  window.addEventListener("hashchange", function () { revealMathTarget(location.hash.slice(1), true); });
+  revealMathTarget(location.hash.slice(1), true);
 
   /* ---------- Hero motif: no travelling pulses when motion is reduced ---------- */
   if (reduceMotion.matches) {
