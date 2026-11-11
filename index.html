@@ -240,11 +240,11 @@
           </div>
           <div class="stat">
             <p class="stat-value">39<small>/39</small></p>
-            <p class="stat-label"><span class="en" lang="en">changed decisions recovered by restoring the agent’s earlier execution state; replacing the prediction file recovered none</span><span class="zh" lang="zh-CN">恢复 Agent 读取前的执行状态后，39 个被改变的决策全部复原；仅替换预测文件未能恢复</span></p>
+            <p class="stat-label"><span class="en" lang="en">changed decisions recovered by restoring the agent’s pre-read execution state; replacing the prediction file recovered none</span><span class="zh" lang="zh-CN">恢复 Agent 读取前的执行状态后，39 个被改变的决策全部复原；仅替换预测文件未能恢复</span></p>
           </div>
           <div class="stat">
             <p class="stat-value">42.4<small>%</small></p>
-            <p class="stat-label"><span class="en" lang="en">less time for forward execution plus verification than the original FP64 checks, with identical flags and recovery outputs</span><span class="zh" lang="zh-CN">相比原始 FP64 校验，前向计算与验证总耗时降低，异常标记及恢复输出保持一致</span></p>
+            <p class="stat-label"><span class="en" lang="en">less time for forward execution plus verification than the original FP64 checks, with identical flags and recovery outputs</span><span class="zh" lang="zh-CN">前向计算与验证总耗时降幅，比较基准为原始 FP64 校验；异常标记与恢复输出保持一致</span></p>
           </div>
         </div>
         
@@ -260,7 +260,7 @@
         <div class="abstract-text">
           <div class="zh" lang="zh-CN">
             <p class="promo-lead">AI 驱动科学的可重复性，还取决于运行计算工具的硬件。汇总指标稳定，不能保证证据选择和 Agent 决策也稳定。</p>
-            <p><strong>我们在生产训练集群中发现了两种 GPU 静默数值故障模式：程序没有报错，训练持续运行，底层计算却已悄然发生偏差。</strong>Lei 等（OSDI’26）在覆盖 <a href="https://www.usenix.org/conference/osdi26/presentation/lei">3,500 万 GPU 小时的生产部署中检测到 18 起 SDC 事件，涉及 13 张故障 GPU</a>。OSDI’26 的另一项生产集群研究分析了 <a href="https://www.usenix.org/conference/osdi26/presentation/zheng">23 张出现静默数据损坏（SDC）的 GPU</a>：标准合成微基准漏掉了超过 60% 的设备，常规 ECC 与温度保护也未捕获所观察到的逻辑级错误。因此，通过通用设备检查，并不等于某项具体科学计算可靠。</p>
+            <p><strong>我们在生产训练集群中发现了两种 GPU 静默数值故障模式：程序没有报错，训练持续运行，底层计算却已悄然发生偏差。</strong>Lei 等（OSDI’26）在覆盖 <a href="https://www.usenix.org/conference/osdi26/presentation/lei">3,500 万 GPU 小时的生产部署中检测到 18 起静默数据损坏（SDC）事件，涉及 13 张故障 GPU</a>。OSDI’26 的另一项生产集群研究分析了 <a href="https://www.usenix.org/conference/osdi26/presentation/zheng">23 张出现 SDC 的 GPU</a>：标准合成微基准漏掉了超过 60% 的设备，常规 ECC 与温度保护也未捕获所观察到的逻辑级错误。因此，通过通用设备检查，并不等于某项具体科学计算可靠。</p>
             <p>我们在健康硬件上回放捕获的工具数值。在原生 Biomni A1 Agent（GPT-6.1 Sol）执行的 hERG 筛查任务中，候选名单中的标注阻断剂数量保持不变，名单成员和检测分配却发生变化，甚至<mark class="hl-c">让参考决策要求送检的两个标注阻断剂不经检测直接推进</mark>。在 SciFact 检索列表发生变化的组合中，可出现“结论不变、证据路径改变”；未按这一条件筛选的队列中，差异未超出健康硬件重复运行时的波动。这两类实验共同说明：应同时检查汇总结果与产生科学决策的具体证据和对象。</p>
             <p>为此，我们提出 BioAgent-DF，构建了一套从 GPU 数值校验、可信重算，到 Agent 状态恢复与决策认证的端到端科学决策保真框架。我们将研究从 hERG 药物安全筛查拓展到 GB1 蛋白工程和超导材料筛选，在三类任务中都观察到数值故障改变了 Agent 的决策。经 BioAgent-DF 恢复后，三个任务中的 Agent 决策均与匹配健康运行的参考决策一致。同时，与原始 FP64 校验相比，流式校验将额外验证耗时降低 <mark class="hl">78.2%</mark>，计算与验证总耗时降低 <mark class="hl">42.4%</mark>。</p>
             <p>从生产集群中的静默数值故障，到科研 Agent 的决策保真，再到未来全自动湿实验室的发展，我们希望以 BioAgent-DF 为可信决策核心，将可信计算与科学决策的保障延伸至真实物理实验。我们的目标，是为下一代实验室构建贯穿计算、决策、执行与观测的可信基础设施。</p>
@@ -268,7 +268,7 @@
           </div>
           <div class="en" lang="en">
             <p class="promo-lead">Reproducibility in AI-driven science also depends on the hardware that produces tool values. Stable aggregate metrics do not guarantee that evidence selection or agent decisions will remain stable.</p>
-            <p><strong>In production training clusters, we found two patterns of silent numerical faults on GPUs: programs reported no errors and training continued, while the underlying calculations had quietly diverged.</strong> Lei et al. detected <a href="https://www.usenix.org/conference/osdi26/presentation/lei">18 SDC incidents involving 13 faulty GPUs during a production deployment spanning 35 million GPU-hours</a>. In another OSDI’26 study of <a href="https://www.usenix.org/conference/osdi26/presentation/zheng">23 GPUs affected by silent data corruption (SDC)</a>, standard synthetic microbenchmarks missed over 60% of the defective devices, and conventional ECC and thermal protections did not capture the observed logic-level faults. Passing a general device test therefore does not establish correctness for a specific scientific computation.</p>
+            <p><strong>In production training clusters, we found two patterns of silent numerical faults on GPUs: programs reported no errors and training continued, while the underlying calculations had quietly diverged.</strong> Lei et al. (OSDI’26) detected <a href="https://www.usenix.org/conference/osdi26/presentation/lei">18 silent data corruption (SDC) incidents involving 13 faulty GPUs during a production deployment spanning 35 million GPU-hours</a>. In another OSDI’26 study of <a href="https://www.usenix.org/conference/osdi26/presentation/zheng">23 GPUs affected by SDC</a>, standard synthetic microbenchmarks missed over 60% of the defective devices, and conventional ECC and thermal protections did not capture the observed logic-level faults. Passing a general device test therefore does not establish correctness for a specific scientific computation.</p>
             <p>We replay captured tool values in paired runs on healthy hardware. In hERG screening with the native Biomni A1 agent (GPT-6.1 Sol), the shortlist retains the same number of labeled blockers while shortlist membership and testing assignments change, including <mark class="hl-c">two labeled blockers advanced without testing, although the reference decision was to test them</mark>. In SciFact combinations selected for changed retrieval lists, verdicts can stay unchanged while evidence paths change; the unfiltered cohort shows no excess over healthy-repeat variation. Both experiments motivate checking the evidence and objects behind scientific decisions alongside aggregate results.</p>
             <p>To address this, we propose BioAgent-DF, an end-to-end scientific decision-fidelity framework spanning GPU numerical verification, trusted recomputation, agent state restoration and decision certification. We extended our experiments from hERG drug safety screening to GB1 protein engineering and superconducting materials screening and observed that numerical faults changed agent decisions in all three tasks. After recovery with BioAgent-DF, agent decisions in all three tasks matched the reference decisions from matched healthy runs. Compared with the original FP64 verification, streaming verification reduces the added verification time by <mark class="hl">78.2%</mark> and the total compute-and-verification time by <mark class="hl">42.4%</mark>.</p>
             <p>From silent numerical faults in production clusters to decision fidelity in research agents, we aim to make BioAgent-DF a trusted decision core that extends these safeguards to physical experiments. For future fully automated wet labs, this infrastructure would span computation, decisions, execution and observation.</p>
@@ -452,8 +452,8 @@
             <div class="tp-grid">
               <div class="tp-card shown">
                 <p class="tp-label"><span class="sw sw-solid" aria-hidden="true"></span><span class="en" lang="en">Validated in this work</span><span class="zh" lang="zh-CN">本文已验证</span></p>
-                <div class="en" lang="en"><p>The <a href="https://github.com/INTOSYN/Aritheia_GPU_Test">Aritheia</a> arithmetic-probe tool is public: on the faulty GPU, 15 of 69 checks detected an anomaly, and none did on two healthy GPUs. Healthy references were measured before, during and after every capture round. The residual bank keeps 16,437 residual records from 240 captures for replay. Ordinary precision differences serve as controls: between healthy environments, BF16 intermediate reduction changes Top-10 nearest-neighbor membership in the PBMC single-cell dataset; zero-residual controls leave endpoints unchanged; and differences between healthy repeats are measured separately as the comparison baseline.</p></div>
-                <div class="zh" lang="zh-CN"><p><a href="https://github.com/INTOSYN/Aritheia_GPU_Test">Aritheia</a> 算术探针工具已公开，故障 GPU 上 69 项检查中 15 项检出异常，两块健康 GPU 为零。每轮捕获前、中、后都测量健康参考。残差库保存了来自 240 次捕获的 16,437 条残差记录，可用于回放。普通精度差异已作为对照：健康环境之间的 BF16 中间降精度会改变 PBMC 单细胞数据集的 Top-10 近邻名单，零残差对照不改变终点，健康重复之间的差异被单独测量并作为比较基线。</p></div>
+                <div class="en" lang="en"><p>The <a href="https://github.com/INTOSYN/Aritheia_GPU_Test">Aritheia</a> arithmetic-probe tool is public: on the faulty GPU, 15 of 69 checks detected an anomaly, and none did on two healthy GPUs. Healthy references were measured before, during and after every capture round. The residual bank keeps 16,437 residual records from 240 captures for replay. Ordinary precision differences serve as controls: on healthy hardware, differences in the precision used for intermediate summation in BF16 matrix multiplication can change Top-10 nearest-neighbor membership in the PBMC single-cell dataset; zero-residual controls leave endpoints unchanged; and differences between healthy repeats are measured separately as the comparison baseline.</p></div>
+                <div class="zh" lang="zh-CN"><p><a href="https://github.com/INTOSYN/Aritheia_GPU_Test">Aritheia</a> 算术探针工具已公开，故障 GPU 上 69 项检查中 15 项检出异常，两块健康 GPU 为零。每轮捕获前、中、后都测量健康参考。残差库保存了来自 240 次捕获的 16,437 条残差记录，可用于回放。普通精度差异已作为对照：在健康硬件上，BF16 矩阵乘法中间求和采用的精度不同，也可能改变 PBMC 单细胞数据集的 Top-10 近邻名单，零残差对照不改变终点，健康重复之间的差异被单独测量并作为比较基线。</p></div>
               </div>
               <div class="tp-card proposed">
                 <p class="tp-label"><span class="sw sw-dashed" aria-hidden="true"></span><span class="en" lang="en">Proposed</span><span class="zh" lang="zh-CN">拟议</span></p>
@@ -620,7 +620,7 @@
           </div>
           <aside class="aside">
             <ul class="facts">
-              <li><span class="fact-v">405613.25</span><span class="fact-t"><span class="en" lang="en">returned by an exact-integer FP32 probe whose correct result is 405760, a value that cannot arise under correct arithmetic</span><span class="zh" lang="zh-CN">精确整数 FP32 探针的返回值；正确结果为 405760，这一偏差不能由正确算术产生</span></span></li>
+              <li><span class="fact-v">405613.25</span><span class="fact-t"><span class="en" lang="en">erroneous result from an exact-integer FP32 probe; the correct result is 405,760</span><span class="zh" lang="zh-CN">精确整数 FP32 探针的返回值；正确结果为 405760，这一偏差不能由正确算术产生</span></span></li>
               <li><span class="fact-v">38 · 24 · 54 <span class="of">/ 0</span></span><span class="fact-t"><span class="en" lang="en">mismatching tensor-core MMA outputs in three runs of one compiled kernel, against zero for the paired scalar FFMA</span><span class="zh" lang="zh-CN">同一已编译内核运行三次时，Tensor Core MMA 输出不一致的数量；配对标量 FFMA 的不一致数量为零</span></span></li>
               
             </ul>
@@ -739,7 +739,7 @@
 
         <div class="control-panel">
           <h3><span class="en" lang="en">Without selecting for an upstream change</span><span class="zh" lang="zh-CN">不按上游变化筛选时</span></h3>
-          <p><span class="en" lang="en">In a separate, unselected set of Qwen runs, 382 of 421 groups completed every condition with the agent reading the tool result; the other 39 were incomplete or the agent did not read the result. Candidate-minus-reference differences were no greater than healthy-repeat differences (<a href="2611.01527v1.pdf#page=7">paper Table 2</a>).</span><span class="zh" lang="zh-CN">在另一组未经筛选的 Qwen 运行中，421 组里有 382 组各条件均完成，且 Agent 读取了工具结果，其余 39 组未完成或未读取结果。候选状态相对参考状态的差异不高于健康重复之间的差异（<a href="2611.01527v1.pdf#page=7">论文表 2</a>）。</span></p>
+          <p><span class="en" lang="en">In a separate, unselected set of Qwen runs, 382 of 421 groups completed every condition with the agent reading the tool result; the other 39 were incomplete or the agent did not read the result. Disagreements between candidate and reference runs were no greater than disagreements between healthy repeats (<a href="2611.01527v1.pdf#page=7">paper Table 2</a>).</span><span class="zh" lang="zh-CN">在另一组未经筛选的 Qwen 运行中，421 组里有 382 组各条件均完成，且 Agent 读取了工具结果，其余 39 组未完成或未读取结果。候选状态相对参考状态的差异不高于健康重复之间的差异（<a href="2611.01527v1.pdf#page=7">论文表 2</a>）。</span></p>
           <div class="control-table-wrap">
             <table class="control-table">
               <caption><span class="en" lang="en">Groups that differ, among the same 382 groups</span><span class="zh" lang="zh-CN">同一批 382 个完成且已读取结果的组中，发生差异的组数</span></caption>
@@ -751,7 +751,7 @@
               </tbody>
             </table>
           </div>
-          <p class="scope-note"><span class="en" lang="en">C is the candidate state; H1 and H2 repeat the healthy reference state. All confidence intervals include zero. Separate unselected controls for claims 350 and 1180 also showed no read, citation or verdict changes in their completed comparison subsets; baseline Gemma completed only claim 350.</span><span class="zh" lang="zh-CN">C 为候选状态，H1 与 H2 为健康参考状态的重复运行。置信区间均包含零。另行设置的未筛选声明 350 与 1180 对照，在已完成的比较子集中也未出现读取、引用或结论变化；基线 Gemma 完成的子集仅覆盖声明 350。</span></p>
+          <p class="scope-note"><span class="en" lang="en">C is the candidate state; H1 and H2 repeat the healthy reference state. All confidence intervals for the excess disagreement rate relative to healthy repeats include zero. Separate unselected controls for claims 350 and 1180 also showed no read, citation or verdict changes in their completed comparison subsets; baseline Gemma completed only claim 350.</span><span class="zh" lang="zh-CN">C 为候选状态，H1 与 H2 为健康参考状态的重复运行。候选与参考的差异率减去健康重复差异率，所得差值的置信区间均包含零。另行设置的未筛选声明 350 与 1180 对照，在已完成的比较子集中也未出现读取、引用或结论变化；基线 Gemma 完成的子集仅覆盖声明 350。</span></p>
         </div>
         <blockquote class="pullquote"><span class="en" lang="en">Record the evidence and experimental choices behind a result, and compare their changes with healthy-repeat variation.</span><span class="zh" lang="zh-CN">记录结果背后的证据与实验选择，并将其变化与健康重复的波动比较。</span></blockquote>
 
